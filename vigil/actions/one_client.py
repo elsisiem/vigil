@@ -62,7 +62,11 @@ class OneClient:
         return True, v
 
     def _run(self, args: list[str], timeout: int = 120) -> Any:
-        one = shutil.which("one", path=self._env.get("PATH"))
+        one = None
+        if os.name == "nt":
+            one = shutil.which("one.cmd", path=self._env.get("PATH")) or shutil.which("one.exe", path=self._env.get("PATH"))
+        else:
+            one = shutil.which("one", path=self._env.get("PATH"))
         cmd = [one, "--agent", *args] if one else [
             shutil.which("npx", path=self._env.get("PATH")) or "npx", "-y", CLI_PACKAGE, "--agent", *args
         ]

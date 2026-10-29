@@ -289,7 +289,7 @@ pre.json { font-family: var(--mono-2); font-size: 12px; white-space: pre-wrap; m
 
 /* one-screen fold */
 .theme { width: 34px; height: 34px; padding: 0; border-radius: 8px; color: var(--muted); font-size: 15px; }
-.top { grid-template-columns: auto minmax(0, 1fr) auto auto auto; }
+.top { grid-template-columns: auto minmax(0, 1fr) auto auto auto auto; gap: 14px; }
 .brief { max-width: none; padding: 14px 20px 60px; gap: 24px; }
 .fold { display: flex; flex-direction: column; gap: 12px; height: calc(100vh - 86px); min-height: 640px; }
 .strip { padding: 10px 16px; flex: none; }
@@ -323,3 +323,25 @@ details.narr { margin-top: 0; }
 .update button { align-self: flex-start; }
 .below { display: flex; flex-direction: column; gap: 28px; border-top: 1px solid var(--line); padding-top: 24px; }
 @media (max-width: 1100px) { .fold { height: auto; } .cols { grid-template-columns: 1fr; } .cols .col { overflow: visible; } }
+
+/* help + activity */
+.help { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.help-card { background: var(--bg); color: var(--text); border: 1px solid var(--line-2); border-radius: 12px; max-width: 640px; width: 100%; padding: 20px 24px; box-shadow: 0 24px 64px rgba(0,0,0,.25); }
+.help-h { display: flex; align-items: center; justify-content: space-between; font-family: var(--sans); font-size: 18px; margin-bottom: 10px; }
+.help ol { margin: 0; padding-left: 20px; font-size: 13px; line-height: 20px; }
+.help li { margin: 6px 0; } .help li b { font-weight: 500; }
+.agents { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; margin-bottom: 8px; }
+.agents .lane { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; }
+.agents .lane .state { color: var(--faint); }
+.activity { max-height: 260px; overflow: auto; font-size: 12px; line-height: 18px; border-top: 1px solid var(--line); }
+.activity div { display: grid; grid-template-columns: 130px 1fr; gap: 10px; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.activity .who { color: var(--muted); }
+.activity .who.commander { color: var(--accent); }
+.activity i { color: var(--faint); font-style: normal; }
+.activity b { font-weight: 500; }
+.strip { padding: 10px 16px 12px; }
+.dec-why { -webkit-line-clamp: 2; }
+.alts div { display: inline; margin-right: 12px; }
+.cols { gap: 16px; }
+.cols .col { gap: 10px; }
+.tile { border-radius: 8px; }

@@ -28,10 +28,10 @@
 
   function reset() {
     state.components.clear(); state.nodes.clear(); state.sources = []; state.routes = []; state.selected = []; state.decision = null;
-    ["slot-header", "slot-banner", "slot-map", "slot-readings", "slot-sit", "slot-todo", "slot-context", "sources", "action-results", "timeline", "dec-alts", "metrics"].forEach((id) => { $(id).innerHTML = ""; });
+    ["slot-header", "slot-banner", "slot-map", "slot-readings", "slot-sit", "slot-todo", "slot-context", "sources", "action-results", "timeline", "dec-alts", "metrics", "activity"].forEach((id) => { $(id).innerHTML = ""; });
     ["sec-context", "sec-sources"].forEach((id) => show(id, false));
     show("welcome", false); show("fold", true); show("below", true); show("decision", false);
-    document.querySelectorAll(".lane").forEach((l) => { l.className = "lane"; l.querySelector(".state").textContent = "idle"; l.querySelector(".lane-b").innerHTML = ""; });
+    document.querySelectorAll(".lane").forEach((l) => { l.className = "lane"; l.querySelector(".state").textContent = "idle"; });
     document.querySelectorAll("#stepper span").forEach((s) => (s.className = ""));
     $("btn-act").disabled = false;
   }
@@ -63,14 +63,22 @@
   }
   function highlightSource(id) { document.querySelectorAll(".src.hl").forEach((s) => s.classList.remove("hl")); const n = $("src-" + id); if (n) { n.classList.add("hl"); n.scrollIntoView({ block: "center", behavior: "smooth" }); } }
 
+  const NAMES = { sensors: "sensor analyst", facility: "facility lead", research: "field researcher", commander: "commander", system: "station" };
   function lane(agent, stateName, html) {
     const l = document.querySelector(`.lane[data-agent="${agent}"]`); if (!l) return;
     l.className = "lane " + stateName; l.querySelector(".state").textContent = stateName;
-    if (html) { const b = l.querySelector(".lane-b"); const d = document.createElement("span"); d.className = "evt"; d.innerHTML = html; b.appendChild(d); b.scrollLeft = b.scrollWidth; }
+    if (html) activity(agent, html);
   }
+  function activity(agent, html) {
+    const a = $("activity"); const d = document.createElement("div");
+    d.innerHTML = `<span class="who ${esc(agent)}">${esc(NAMES[agent] || agent)}</span><span>${html}</span>`;
+    a.appendChild(d); a.scrollTop = a.scrollHeight;
+  }
+  const TOOL_WORDS = { signature_match: "compared the readings with known hazard patterns", sensor_trend: "checked how a reading moved", current_readings: "read the sensors", facility_graph: "read the floor plan", route_to_exit: "computed an exit route", venue_lookup: "looked up the venue", web_search: "searched the web", read_page: "read a page", research_brief: "pulled a cited research brief", local_conditions: "checked conditions outside" };
 
   function showDecisionPanel(p) {
     show("decision", true);
+    if (!state.decision) { $("btn-act").disabled = true; $("btn-act").textContent = "deciding"; }
     const chip = $("dec-action"); chip.textContent = p.action; chip.className = "action-chip " + p.action;
     $("dec-conf").textContent = `confidence ${Math.round(p.confidence * 100)}%`;
     $("dec-why").textContent = p.rationale;
@@ -78,7 +86,7 @@
   }
   function showDecision(d) {
     state.decision = d; showDecisionPanel(d);
-    $("dispatch-text").value = d.dispatch_message || ""; $("override-action").value = ""; $("btn-act").disabled = false;
+    $("dispatch-text").value = d.dispatch_message || ""; $("override-action").value = ""; $("btn-act").disabled = false; $("btn-act").textContent = "approve & dispatch";
     lane("commander", "done", `decided <b>${esc(d.action)}</b> · ${Math.round(d.confidence * 100)}%`);
     if (d.guardrail_note) { log("guardrail: " + d.guardrail_note, "warn"); lane("commander", "done", `policy: ${esc(d.guardrail_note)}`); }
     step("act");
@@ -116,9 +124,9 @@
       case "component.remove": unmount(ev.key); break;
       case "component.invalid": log(`${ev.owner}: rejected a component (${ev.error})`, "warn", ev.t); break;
       case "signature": log("signature · " + (ev.matches || []).map((m) => `${m.label} ${m.score.toFixed(2)}`).join(", "), "", ev.t); break;
-      case "classification": log(`classified ${ev.classification.incident_class} · severity ${ev.classification.severity} · ${ev.classification.people_at_risk} at risk`, "", ev.t); break;
-      case "agent.status": lane(ev.agent, ev.state, ev.state === "done" ? `done · ${(ev.latency_ms / 1000).toFixed(1)}s · ${ev.tool_calls} tools` : ev.state === "compiling" ? "compiling" : "started"); break;
-      case "agent.tool": lane(ev.agent, "investigating", `<b>${esc(ev.tool)}</b> ${esc((ev.input || "").slice(0, 60))}`); break;
+      case "classification": log(`classified ${ev.classification.incident_class} · severity ${ev.classification.severity} · ${ev.classification.people_at_risk} at risk`, "", ev.t); activity("system", `classified as <b>${esc(ev.classification.incident_class.replace(/_/g, " "))}</b>, severity ${ev.classification.severity}/5, ${ev.classification.people_at_risk} at risk`); break;
+      case "agent.status": lane(ev.agent, ev.state, ev.state === "done" ? `finished in ${(ev.latency_ms / 1000).toFixed(0)}s, ${(ev.components || []).length} tiles` : ev.state === "compiling" ? "writing its tiles" : "started investigating"); break;
+      case "agent.tool": lane(ev.agent, "investigating", `${TOOL_WORDS[ev.tool] || esc(ev.tool)}${ev.input ? ` <i>${esc(ev.input.slice(0, 70))}</i>` : ""}`); break;
       case "compile.done": log(`${ev.owner}: ${ev.count} components in ${ev.latency_ms} ms${ev.provisional ? " (provisional)" : ""}${ev.replayed ? " (cached)" : ""}`, "", ev.t); break;
       case "decision": showDecision(ev.decision); log(`decision · ${ev.decision.action} · ${ev.decision.rationale}`, "", ev.t); break;
       case "action": addActionResult(ev.result); break;
@@ -152,7 +160,7 @@
     (run.actions || []).forEach(addActionResult);
     setStatus(run.status.replace("_", " "), run.status === "done" ? "live" : "busy");
     showMetrics({ timings: run.timings, llm_calls: run.llm_calls, sources: (run.sources || []).length, components: (run.components || []).length });
-    (run.reports || []).forEach((r) => lane(r.agent, r.error ? "error" : "done", `done · ${(r.latency_ms / 1000).toFixed(1)}s · ${r.tool_calls} tools`));
+    (run.reports || []).forEach((r) => lane(r.agent, r.error ? "error" : "done", `finished in ${(r.latency_ms / 1000).toFixed(0)}s, ${r.tool_calls} tool calls`));
     document.querySelectorAll("#stepper span").forEach((s) => (s.className = "done"));
   }
   function follow() { state.following = true; $("run-select").value = ""; }
@@ -199,6 +207,10 @@
   const auto = params.get("replay") ? { source: "replay", recording: params.get("replay"), speed: Number(params.get("speed") || 1) } : params.get("fixture") ? { source: "fixture", fixture: params.get("fixture") } : null;
   if (auto) setTimeout(() => start(auto), 600);
 
+  $("help-btn").addEventListener("click", () => show("help", true));
+  $("help-close").addEventListener("click", () => show("help", false));
+  $("help").addEventListener("click", (e) => { if (e.target.id === "help") show("help", false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") show("help", false); if (e.key === "?" && document.activeElement.tagName !== "TEXTAREA") show("help", true); });
   $("theme-btn").addEventListener("click", () => { const r = document.documentElement; const dark = r.dataset.theme !== "dark"; if (dark) r.dataset.theme = "dark"; else delete r.dataset.theme; try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch (e) {} });
   loadMenu().catch(() => {}); refreshRuns(); connect();
 })();

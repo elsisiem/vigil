@@ -32,7 +32,24 @@
   </div>
   <label class="runsel"><select id="run-select"><option value="">recent runs</option></select></label>
   <button class="theme" id="theme-btn" title="light / dark">◐</button>
+  <button class="theme" id="help-btn" title="how to use">?</button>
 </header>
+
+<div class="help hidden" id="help">
+  <div class="help-card">
+    <div class="help-h">How to use the station <button id="help-close">close</button></div>
+    <ol>
+      <li><b>Start.</b> Paste a log in the top bar and press run (Ctrl+Enter), or open ▾ and pick an incident, a live feed tick, or a replay.</li>
+      <li><b>Top strip.</b> The pipeline stages light up as the swarm works. The proposed call (contain, evacuate, observe) appears here with its reasoning and the alert line.</li>
+      <li><b>Left.</b> What happened: title, severity, who is at risk, how the readings compare to known hazard patterns.</li>
+      <li><b>Middle.</b> The floor plan (red affected, amber isolate, green safe, purple exits, dashed green routes) and the sensor readings.</li>
+      <li><b>Right.</b> What to do: response options with sources, and the runbook. Tick options you want to arm.</li>
+      <li><b>Approve &amp; dispatch.</b> Sends the alert to the incident channel and files the review. Tick "live" to post for real; otherwise it is a dry run.</li>
+      <li><b>What changed?</b> Type an update and recompile. The brief rebuilds for the new state.</li>
+      <li><b>Below the fold.</b> Activity of each agent and the full list of sources. [S#] marks on the page scroll to them.</li>
+    </ol>
+  </div>
+</div>
 
 <main class="brief" id="brief">
   <section class="welcome" id="welcome">
@@ -96,13 +113,14 @@
   <div class="below hidden" id="below">
     <section class="sec hidden" id="sec-context"><h2>outside the building</h2><div class="tiles" id="slot-context"></div></section>
     <section class="sec" id="sec-trace">
-      <h2>how the swarm got here</h2>
-      <div class="lanes" id="lanes">
-        <div class="lane" data-agent="sensors"><div class="lane-h"><span class="dot"></span>sensor analyst<span class="state">idle</span></div><div class="lane-b"></div></div>
-        <div class="lane" data-agent="facility"><div class="lane-h"><span class="dot"></span>facility lead<span class="state">idle</span></div><div class="lane-b"></div></div>
-        <div class="lane" data-agent="research"><div class="lane-h"><span class="dot"></span>field researcher<span class="state">idle</span></div><div class="lane-b"></div></div>
-        <div class="lane" data-agent="commander"><div class="lane-h"><span class="dot"></span>commander<span class="state">idle</span></div><div class="lane-b"></div></div>
+      <h2>activity</h2>
+      <div class="agents" id="agents">
+        <span class="lane" data-agent="sensors"><span class="dot"></span>sensor analyst <span class="state">idle</span></span>
+        <span class="lane" data-agent="facility"><span class="dot"></span>facility lead <span class="state">idle</span></span>
+        <span class="lane" data-agent="research"><span class="dot"></span>field researcher <span class="state">idle</span></span>
+        <span class="lane" data-agent="commander"><span class="dot"></span>commander <span class="state">idle</span></span>
       </div>
+      <div class="activity" id="activity"></div>
       <details class="log"><summary>raw event log</summary><div class="timeline" id="timeline"></div></details>
     </section>
     <section class="sec hidden" id="sec-sources"><h2>sources</h2><div id="sources" class="sources"></div></section>
