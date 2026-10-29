@@ -17,6 +17,7 @@ import os
 import shutil
 import subprocess
 import time
+from pathlib import Path
 from typing import Any
 
 from ..config import settings
@@ -61,15 +62,26 @@ class OneClient:
             return False, f"One CLI needs Node 22.23.4+; found {v}"
         return True, v
 
+    def _command(self, args: list[str]) -> list[str]:
+        """Build the CLI invocation without a shell in between.
+
+        On Windows the `one.cmd` shim runs through cmd.exe, which rewrites quotes inside a JSON
+        argument. Calling the package's script with node directly passes arguments untouched.
+        """
+        path = self._env.get("PATH")
+        node = shutil.which("node", path=path)
+        if os.name == "nt" and node:
+            script = Path(node).parent / "node_modules" / "@withone" / "cli" / "bin" / "cli.js"
+            if script.exists():
+                return [node, str(script), "--agent", *args]
+        one = shutil.which("one", path=path)
+        if one and os.name != "nt":
+            return [one, "--agent", *args]
+        npx = shutil.which("npx.cmd" if os.name == "nt" else "npx", path=path) or "npx"
+        return [npx, "-y", CLI_PACKAGE, "--agent", *args]
+
     def _run(self, args: list[str], timeout: int = 120) -> Any:
-        one = None
-        if os.name == "nt":
-            one = shutil.which("one.cmd", path=self._env.get("PATH")) or shutil.which("one.exe", path=self._env.get("PATH"))
-        else:
-            one = shutil.which("one", path=self._env.get("PATH"))
-        cmd = [one, "--agent", *args] if one else [
-            shutil.which("npx", path=self._env.get("PATH")) or "npx", "-y", CLI_PACKAGE, "--agent", *args
-        ]
+        cmd = self._command(args)
         proc = subprocess.run(
             cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", env=self._env, timeout=timeout, shell=False
         )

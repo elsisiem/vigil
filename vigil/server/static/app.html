@@ -5,127 +5,138 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vigil · station</title>
 <link rel="stylesheet" href="/static/styles.css">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 <script>try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark";}catch(e){}</script>
 </head>
 <body class="station">
 <header class="top">
-  <a class="brand" href="/">vigil</a>
-  <div class="omnibar" id="omnibar">
-    <textarea id="text-input" rows="1" placeholder="Paste an incident log, or pick one from the menu"></textarea>
-    <button class="menu-btn" id="menu-btn" title="incidents, feed, replay">▾</button>
-    <button class="primary" id="btn-run">run</button>
-    <div class="menu hidden" id="menu">
-      <div class="menu-group"><div class="menu-h">incidents</div><div id="menu-fixtures"></div></div>
-      <div class="menu-group"><div class="menu-h">organizers' fixtures</div><div id="menu-organizers"></div></div>
-      <div class="menu-group"><div class="menu-h">live feed</div>
-        <button data-feed="outbreak-level-5">pull next tick · outbreak-level-5</button>
-        <button data-feed="control-tick">pull next tick · control-tick</button>
-        <div class="menu-note" id="scoreboard"></div>
-      </div>
-      <div class="menu-group"><div class="menu-h">replay (no network, no keys)</div><div id="menu-replays"></div></div>
-      <div class="menu-group"><label class="check"><input type="checkbox" id="auto-act"> auto-act: dispatch without asking</label></div>
-    </div>
+  <a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 16C7.5 8.5 24.5 8.5 29 16C24.5 23.5 7.5 23.5 3 16Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><circle class="pupil" cx="16" cy="16" r="4.4" fill="#6e4bff"/></svg><span>vigil</span></a>
+  <div class="omni">
+    <textarea id="text-input" rows="1" placeholder="Paste an incident log: a radio call, a sensor alert, a staff message…"></textarea>
+    <button class="primary" id="btn-run">Run</button>
   </div>
-  <div class="status">
-    <span id="pill-status">idle</span>
-    <span id="pill-ws" class="faint">connecting</span>
+  <div class="top-r">
+    <span class="conn" id="conn" title="connection"></span>
+    <button class="icon" id="theme-btn" title="Light / dark">◐</button>
+    <button class="icon" id="help-btn" title="How it works">?</button>
   </div>
-  <label class="runsel"><select id="run-select"><option value="">recent runs</option></select></label>
-  <button class="theme" id="theme-btn" title="light / dark">◐</button>
-  <button class="theme" id="help-btn" title="how to use">?</button>
 </header>
+
+<div class="shell">
+  <aside class="side">
+    <div class="side-h">Runs</div>
+    <div class="list" id="runs"><div class="list-empty">Nothing yet. Pick an incident below.</div></div>
+    <div class="side-h">Try an incident</div>
+    <div class="list" id="fixtures"></div>
+    <div class="side-h">Live feed <span class="faint" id="team"></span></div>
+    <div class="list">
+      <button class="item" data-feed="outbreak-level-5"><span class="it-t">Pull next tick</span><span class="it-s">outbreak-level-5</span></button>
+      <button class="item" data-feed="control-tick"><span class="it-t">Pull next tick</span><span class="it-s">control-tick</span></button>
+    </div>
+    <div class="side-h">Replays</div>
+    <div class="list" id="replays"></div>
+    <label class="toggle"><input type="checkbox" id="auto-act"><span></span>Act automatically</label>
+  </aside>
+
+  <main class="main">
+    <section class="welcome" id="welcome">
+      <svg class="mark big" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 16C7.5 8.5 24.5 8.5 29 16C24.5 23.5 7.5 23.5 3 16Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle class="pupil" cx="16" cy="16" r="4.4" fill="#6e4bff"/></svg>
+      <h1>Something is happening in the building.<br>Vigil tells you what to do.</h1>
+      <div class="how">
+        <div><b>1</b><span>Paste a log or pick an incident on the left.</span></div>
+        <div><b>2</b><span>Three agents investigate: sensors, the floor plan, and the web.</span></div>
+        <div><b>3</b><span>You get one recommended call, a checklist and sources. Approve it to send the alert.</span></div>
+      </div>
+      <div class="cards" id="sample-cards"></div>
+    </section>
+
+    <section class="view hidden" id="view">
+      <div class="hero">
+        <div class="hero-l">
+          <div class="meta" id="meta"></div>
+          <h1 id="title">Reading the log…</h1>
+          <div class="chips" id="chips"></div>
+        </div>
+        <ol class="progress" id="progress">
+          <li data-step="classify"><i></i>Read the log</li>
+          <li data-step="investigate"><i></i>Investigate</li>
+          <li data-step="compile"><i></i>Build the brief</li>
+          <li data-step="decide"><i></i>Decide</li>
+          <li data-step="act"><i></i>Act</li>
+        </ol>
+      </div>
+
+      <div class="call" id="call" data-action="">
+        <div class="call-wait" id="call-wait">
+          <div class="cw-h"><span class="spin"></span><span id="wait-text">Three specialists are investigating. The recommended call appears here.</span></div>
+          <div class="crew" id="crew"></div>
+        </div>
+        <div class="call-ready hidden" id="call-ready">
+          <div class="call-l">
+            <div class="call-k">Recommended call</div>
+            <div class="call-v"><span id="call-action">—</span><span class="conf" id="call-conf"></span></div>
+            <p id="call-why"></p>
+            <button class="link" id="why-btn">Why, and why not the others</button>
+            <div class="why hidden" id="why"></div>
+          </div>
+          <div class="call-r">
+            <div class="call-k">Alert to #loft-incident</div>
+            <textarea id="dispatch" rows="2"></textarea>
+            <div class="seg" id="seg">
+              <button data-act="contain">Contain</button><button data-act="evacuate">Evacuate</button><button data-act="observe">Observe</button>
+            </div>
+            <div class="call-actions">
+              <button class="primary big" id="btn-act">Approve &amp; send alert</button>
+              <label class="toggle small"><input type="checkbox" id="act-live"><span></span>Live</label>
+            </div>
+            <div class="results" id="results"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="body">
+        <div class="map-card">
+          <div class="card-h"><span id="map-title">Floor plan</span>
+            <span class="legend"><i class="lg hot"></i>affected<i class="lg iso"></i>closed off<i class="lg safe"></i>safe<i class="lg exit"></i>exit<i class="lg rt"></i>route</span>
+          </div>
+          <div class="map" id="map"></div>
+          <div class="map-cap" id="map-cap"></div>
+        </div>
+        <div class="panel">
+          <div class="tabs" id="tabs">
+            <button data-tab="do" class="active">Do now <b id="n-do"></b></button>
+            <button data-tab="options">Options <b id="n-options"></b></button>
+            <button data-tab="readings">Readings <b id="n-readings"></b></button>
+            <button data-tab="people">People <b id="n-people"></b></button>
+            <button data-tab="activity">Activity <b id="n-activity"></b></button>
+            <button data-tab="sources">Sources <b id="n-sources"></b></button>
+          </div>
+          <div class="tab-body" id="tab-body"></div>
+          <div class="update">
+            <input id="note" placeholder="What changed? e.g. oven power cut, smoke thinning">
+            <button id="btn-update">Update</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
 
 <div class="help hidden" id="help">
   <div class="help-card">
-    <div class="help-h">How to use the station <button id="help-close">close</button></div>
+    <div class="help-h"><span>How Vigil works</span><button class="icon" id="help-close">✕</button></div>
     <ol>
-      <li><b>Start.</b> Paste a log in the top bar and press run (Ctrl+Enter), or open ▾ and pick an incident, a live feed tick, or a replay.</li>
-      <li><b>Top strip.</b> The pipeline stages light up as the swarm works. The proposed call (contain, evacuate, observe) appears here with its reasoning and the alert line.</li>
-      <li><b>Left.</b> What happened: title, severity, who is at risk, how the readings compare to known hazard patterns.</li>
-      <li><b>Middle.</b> The floor plan (red affected, amber isolate, green safe, purple exits, dashed green routes) and the sensor readings.</li>
-      <li><b>Right.</b> What to do: response options with sources, and the runbook. Tick options you want to arm.</li>
-      <li><b>Approve &amp; dispatch.</b> Sends the alert to the incident channel and files the review. Tick "live" to post for real; otherwise it is a dry run.</li>
-      <li><b>What changed?</b> Type an update and recompile. The brief rebuilds for the new state.</li>
-      <li><b>Below the fold.</b> Activity of each agent and the full list of sources. [S#] marks on the page scroll to them.</li>
+      <li><b>Start.</b> Paste a log in the top bar and press Run, or pick an incident on the left. Replays need no internet.</li>
+      <li><b>Progress.</b> The tracker at the top right shows where the agents are: reading the log, investigating, building the brief, deciding.</li>
+      <li><b>The call.</b> The big card is the recommendation: contain (deal with it in place), evacuate (get people out), or observe (nothing to do). Change it with the three buttons if you disagree.</li>
+      <li><b>Approve.</b> Sends the alert to the incident channel and files a review in GitHub. Turn on Live to post for real; otherwise it is a safe dry run.</li>
+      <li><b>Floor plan.</b> Red rooms are affected, striped rooms are closed off, green rooms are safe, purple rooms are exits. Circles count people; the moving dot follows the route out.</li>
+      <li><b>Tabs.</b> Do now is the checklist. Options are what the research supports, each with a source. Readings, People, Activity and Sources show the detail.</li>
+      <li><b>Update.</b> Type what changed at the bottom right. The brief is rebuilt for the new situation.</li>
     </ol>
+    <div class="keys"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> run · <kbd>?</kbd> help · <kbd>Esc</kbd> close</div>
   </div>
 </div>
-
-<main class="brief" id="brief">
-  <section class="welcome" id="welcome">
-    <h1 class="display">What is happening, and what should we do?</h1>
-    <p class="lead">Give the station a log. It builds the brief for that incident: readings, floor plan, people,
-    grounded options, and a decision you can approve.</p>
-    <div class="samples" id="samples"></div>
-  </section>
-
-  <div class="fold hidden" id="fold">
-    <section class="strip" id="strip">
-      <div class="stepper" id="stepper">
-        <span data-step="classify">classify</span><span data-step="investigate">investigate</span><span data-step="compile">compile</span><span data-step="decide">decide</span><span data-step="act">act</span>
-        <span class="metrics" id="metrics"></span>
-      </div>
-      <div class="decision hidden" id="decision">
-        <div class="dec-main">
-          <div><span class="action-chip" id="dec-action">—</span><span class="dec-conf" id="dec-conf"></span></div>
-          <p class="dec-why" id="dec-why"></p>
-          <div class="alts" id="dec-alts"></div>
-        </div>
-        <div class="dec-side">
-          <textarea id="dispatch-text" rows="2" title="dispatch line"></textarea>
-          <div class="row">
-            <select id="override-action">
-              <option value="">approve as proposed</option>
-              <option value="contain">override · contain</option>
-              <option value="evacuate">override · evacuate</option>
-              <option value="observe">override · observe</option>
-            </select>
-            <button class="primary" id="btn-act">approve &amp; dispatch</button>
-            <label class="check"><input type="checkbox" id="act-live"> live</label>
-          </div>
-          <div class="results" id="action-results"></div>
-        </div>
-      </div>
-    </section>
-
-    <div class="cols">
-      <section class="col" id="col-sit">
-        <div id="slot-header"></div>
-        <div id="slot-banner"></div>
-        <div class="tiles one" id="slot-sit"></div>
-        <details class="narr"><summary>incident log</summary><pre id="narrative"></pre></details>
-      </section>
-      <section class="col" id="col-map">
-        <div id="slot-map"></div>
-        <div class="tiles compact" id="slot-readings"></div>
-      </section>
-      <section class="col" id="col-todo">
-        <h2 class="colh">what to do</h2>
-        <div class="tiles one" id="slot-todo"></div>
-        <div class="update">
-          <textarea id="note-text" rows="2" placeholder="what changed? e.g. oven power cut, hood running, smoke thinning"></textarea>
-          <button id="btn-recompile">recompile</button>
-        </div>
-      </section>
-    </div>
-  </div>
-
-  <div class="below hidden" id="below">
-    <section class="sec hidden" id="sec-context"><h2>outside the building</h2><div class="tiles" id="slot-context"></div></section>
-    <section class="sec" id="sec-trace">
-      <h2>activity</h2>
-      <div class="agents" id="agents">
-        <span class="lane" data-agent="sensors"><span class="dot"></span>sensor analyst <span class="state">idle</span></span>
-        <span class="lane" data-agent="facility"><span class="dot"></span>facility lead <span class="state">idle</span></span>
-        <span class="lane" data-agent="research"><span class="dot"></span>field researcher <span class="state">idle</span></span>
-        <span class="lane" data-agent="commander"><span class="dot"></span>commander <span class="state">idle</span></span>
-      </div>
-      <div class="activity" id="activity"></div>
-      <details class="log"><summary>raw event log</summary><div class="timeline" id="timeline"></div></details>
-    </section>
-    <section class="sec hidden" id="sec-sources"><h2>sources</h2><div id="sources" class="sources"></div></section>
-  </div>
-</main>
 
 <div class="toasts" id="toasts"></div>
 <script src="/static/components.js"></script>

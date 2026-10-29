@@ -99,16 +99,16 @@ class Facility:
 
 def _loft() -> Facility:
     s = {
-        "stairwell_a": Sector("stairwell_a", "Stairwell A", 20, 40, 200, 150, 0, True),
-        "entrance": Sector("entrance", "Entrance / Reception", 20, 210, 200, 370, 40),
-        "main_stage": Sector("main_stage", "Main Stage", 240, 40, 430, 320, 120),
-        "workshop_room": Sector("workshop_room", "Workshop Room", 690, 40, 290, 180, 40),
-        "server_closet": Sector("server_closet", "Server Closet", 690, 240, 130, 120, 2),
-        "restrooms": Sector("restrooms", "Restrooms", 840, 240, 140, 120, 8),
-        "catering_coffee_bar": Sector("catering_coffee_bar", "Catering / Coffee Bar", 240, 380, 260, 200, 35),
-        "lounge": Sector("lounge", "Lounge", 520, 380, 220, 200, 30),
-        "terrace": Sector("terrace", "Terrace", 760, 380, 160, 200, 25),
-        "stairwell_b": Sector("stairwell_b", "Stairwell B", 940, 380, 40, 200, 0, True),
+        "stairwell_a": Sector("stairwell_a", "Stair A", 20, 20, 170, 130, 0, True),
+        "entrance": Sector("entrance", "Entrance", 20, 160, 170, 440, 40),
+        "main_stage": Sector("main_stage", "Main stage", 200, 20, 450, 330, 120),
+        "workshop_room": Sector("workshop_room", "Workshop", 660, 20, 320, 190, 40),
+        "server_closet": Sector("server_closet", "Server room", 660, 220, 155, 130, 2),
+        "restrooms": Sector("restrooms", "Restrooms", 825, 220, 155, 130, 8),
+        "catering_coffee_bar": Sector("catering_coffee_bar", "Coffee bar", 200, 360, 260, 240, 35),
+        "lounge": Sector("lounge", "Lounge", 470, 360, 260, 240, 30),
+        "terrace": Sector("terrace", "Terrace", 740, 360, 125, 240, 25),
+        "stairwell_b": Sector("stairwell_b", "Stair B", 875, 360, 105, 240, 0, True),
     }
     adj = {
         "stairwell_a": ["entrance"],

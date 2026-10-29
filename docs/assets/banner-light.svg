@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="120" viewBox="0 0 560 120" fill="none">
+  <g transform="translate(20 28)">
+    <path d="M4 32C13 17 51 17 60 32C51 47 13 47 4 32Z" stroke="#111111" stroke-width="3.6" stroke-linejoin="round"/>
+    <circle cx="32" cy="32" r="8.4" fill="#6e4bff"/>
+    <circle cx="32" cy="32" r="8.4" stroke="#6e4bff" stroke-width="2" fill="none" opacity="0.6">
+      <animate attributeName="r" values="8.4;17;8.4" dur="2.6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;0;0.6" dur="2.6s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <text x="104" y="66" fill="#111111" font-family="Geist, Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="44" letter-spacing="-1.5">vigil</text>
+  <text x="106" y="92" fill="#777777" font-family="JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">incident command that builds its own interface</text>
+</svg>
