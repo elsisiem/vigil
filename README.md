@@ -149,4 +149,4 @@ vigil/
 
 ## License
 
-MIT. Fonts: JetBrains Mono and Geist, SIL Open Font License.
+MIT. Fonts: Ubuntu (Ubuntu Font Licence) and JetBrains Mono (SIL Open Font License).

@@ -247,9 +247,9 @@
   }
   async function loadSide() {
     const data = await api("/api/fixtures");
-    const item = (f) => { const [t, s] = FRIENDLY[f.name] || [f.name, f.description]; return `<button class="item" data-fixture="${esc(f.name)}"><span class="it-t">${esc(t)}</span><span class="it-s">${esc(s)}</span></button>`; };
+    const item = (f) => { const [t, s] = FRIENDLY[f.name] || [f.name, f.description]; return `<button class="item" data-fixture="${esc(f.name)}" title="${esc(s)}"><span class="it-t">${esc(t)}</span></button>`; };
     $("fixtures").innerHTML = data.fixtures.map(item).join("");
-    $("replays").innerHTML = data.recordings.length ? data.recordings.slice(0, 6).map((r) => `<button class="item" data-replay="${esc(r.name)}"><span class="it-t">${esc(r.name.replace(/-tick-/, " · tick ").replace(/-/g, " "))}</span><span class="it-s">no network needed</span></button>`).join("") : `<div class="list-empty">No recordings yet.</div>`;
+    $("replays").innerHTML = data.recordings.length ? data.recordings.slice(0, 6).map((r) => `<button class="item" data-replay="${esc(r.name)}"><span class="it-t">${esc(r.name.replace(/-tick-/, " · tick ").replace(/-/g, " "))}</span></button>`).join("") : `<div class="list-empty">No recordings yet.</div>`;
     $("sample-cards").innerHTML = ["kitchen-smoke", "medical-collapse", "district-power-outage", "scheduled-alarm-test"].map((k) => `<button class="card-btn" data-fixture="${k}"><b>${esc(FRIENDLY[k][0])}</b><span>${esc(FRIENDLY[k][1])}</span></button>`).join("");
   }
 

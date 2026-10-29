@@ -18,14 +18,14 @@
     const rooms = fac.sectors.map((s) => {
       const cls = s.is_exit ? "exit" : hot.has(s.id) ? "hot" : iso.has(s.id) ? "iso" : safe.has(s.id) ? "safe" : "";
       const x = s.x + 5, y = s.y + 5, w = s.w - 10, h = s.h - 10;
-      const chips = (d.readings[s.id] || []).slice(0, 2).map((r, i) => {
+      const chips = (d.readings[s.id] || []).slice(0, 1).map((r, i) => {
         const text = `${metricName(r.metric)} ${fmt(r.value)}${r.unit && r.unit !== "state" ? " " + r.unit : ""}`;
         const cw = Math.min(w - 28, text.length * 9.4 + 20);
         return `<g class="chip ${esc(r.status)}"><rect x="${x + 14}" y="${y + 46 + i * 30}" width="${cw}" height="24" rx="12"/><text x="${x + 24}" y="${y + 63 + i * 30}">${esc(text)}</text></g>`;
       }).join("");
       const ppl = d.people[s.id];
       const badge = ppl && ppl.count ? `<g class="ppl ${ppl.risk ? "risk" : ""}"><circle cx="${x + w - 26}" cy="${y + h - 26}" r="19"/><text x="${x + w - 26}" y="${y + h - 20}">${ppl.count}</text></g>` : "";
-      const pulse = cls === "hot" ? `<rect class="glow" x="${x}" y="${y}" width="${w}" height="${h}" rx="16"/>` : "";
+      const pulse = "";
       const label = s.label.length * 10 > w - 24 ? s.label.split(" ")[0] : s.label;
       return `<g class="room ${cls}">${pulse}<rect class="box" x="${x}" y="${y}" width="${w}" height="${h}" rx="16"/><text class="lbl" x="${x + 16}" y="${y + 30}">${esc(label)}</text>${s.is_exit ? `<text class="tag" x="${x + 16}" y="${y + 52}">EXIT</text>` : ""}${chips}${badge}</g>`;
     }).join("");
