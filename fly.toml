@@ -1,0 +1,20 @@
+app = "vigil-station"
+primary_region = "sjc"
+
+[build]
+
+[env]
+  VIGIL_HOST = "0.0.0.0"
+  VIGIL_PORT = "8080"
+  VIGIL_DRY_RUN = "1"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2gb"

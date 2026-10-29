@@ -9,99 +9,103 @@
 <body class="station">
 <header class="top">
   <a class="brand" href="/">vigil</a>
-  <div class="status">
-    <span id="pill-team">—</span><span class="sep">·</span>
-    <span id="pill-mode">—</span><span class="sep">·</span>
-    <span id="pill-status">idle</span><span class="sep">·</span>
-    <span id="pill-ws">connecting</span>
+  <div class="omnibar" id="omnibar">
+    <textarea id="text-input" rows="1" placeholder="Paste an incident log, or pick one from the menu"></textarea>
+    <button class="menu-btn" id="menu-btn" title="incidents, feed, replay">▾</button>
+    <button class="primary" id="btn-run">run</button>
+    <div class="menu hidden" id="menu">
+      <div class="menu-group"><div class="menu-h">incidents</div><div id="menu-fixtures"></div></div>
+      <div class="menu-group"><div class="menu-h">organizers' fixtures</div><div id="menu-organizers"></div></div>
+      <div class="menu-group"><div class="menu-h">live feed</div>
+        <button data-feed="outbreak-level-5">pull next tick · outbreak-level-5</button>
+        <button data-feed="control-tick">pull next tick · control-tick</button>
+        <div class="menu-note" id="scoreboard"></div>
+      </div>
+      <div class="menu-group"><div class="menu-h">replay (no network, no keys)</div><div id="menu-replays"></div></div>
+      <div class="menu-group"><label class="check"><input type="checkbox" id="auto-act"> auto-act: dispatch without asking</label></div>
+    </div>
   </div>
-  <label class="runsel">run <select id="run-select"><option value="">latest</option></select></label>
+  <div class="status">
+    <span id="pill-status">idle</span>
+    <span id="pill-ws" class="faint">connecting</span>
+  </div>
+  <label class="runsel"><select id="run-select"><option value="">recent runs</option></select></label>
 </header>
 
-<main class="layout">
-  <aside class="col col-left">
-    <section class="block">
-      <div class="tabs" id="start-tabs">
-        <button data-tab="text" class="active">paste log</button>
-        <button data-tab="fixture">fixture</button>
-        <button data-tab="feed">live feed</button>
-        <button data-tab="replay">replay</button>
-      </div>
-      <div class="tab-body" id="tab-text">
-        <textarea id="text-input" rows="8" placeholder="Paste any incident log. A radio transcript, a sensor dump, a staff message."></textarea>
-        <div class="row"><button class="primary" id="btn-run-text">run</button><label class="check"><input type="checkbox" id="auto-act"> auto-act</label></div>
-      </div>
-      <div class="tab-body hidden" id="tab-fixture">
-        <select id="fixture-select"></select>
-        <div class="row"><button class="primary" id="btn-run-fixture">run</button></div>
-      </div>
-      <div class="tab-body hidden" id="tab-feed">
-        <select id="feed-scenario">
-          <option value="outbreak-level-5">outbreak-level-5</option>
-          <option value="control-tick">control-tick</option>
-        </select>
-        <input id="feed-team" placeholder="team handle (default from .env)">
-        <div class="row"><button class="primary" id="btn-run-feed">pull next tick</button></div>
-        <div class="muted" id="scoreboard"></div>
-      </div>
-      <div class="tab-body hidden" id="tab-replay">
-        <select id="replay-select"></select>
-        <div class="row"><button class="primary" id="btn-replay">play</button></div>
-        <div class="muted">no network, no keys</div>
-      </div>
-    </section>
-
-    <section class="block">
-      <h2>swarm</h2>
-      <div class="agents" id="agents">
-        <div class="agent" data-agent="sensors"><div class="agent-head"><span class="dot"></span><span class="name">sensor analyst</span><span class="state">idle</span></div><div class="agent-body"></div></div>
-        <div class="agent" data-agent="facility"><div class="agent-head"><span class="dot"></span><span class="name">facility lead</span><span class="state">idle</span></div><div class="agent-body"></div></div>
-        <div class="agent" data-agent="research"><div class="agent-head"><span class="dot"></span><span class="name">field researcher</span><span class="state">idle</span></div><div class="agent-body"></div></div>
-        <div class="agent" data-agent="commander"><div class="agent-head"><span class="dot"></span><span class="name">commander</span><span class="state">idle</span></div><div class="agent-body"></div></div>
-      </div>
-    </section>
-
-    <details class="block log">
-      <summary>log</summary>
-      <div class="timeline" id="timeline"></div>
-    </details>
-  </aside>
-
-  <section class="stage">
-    <div class="narrative" id="narrative"><span class="muted">no incident loaded</span></div>
-    <div class="metrics" id="metrics"></div>
-    <div class="grid" id="grid"></div>
+<main class="brief" id="brief">
+  <!-- empty state -->
+  <section class="welcome" id="welcome">
+    <h1 class="display">What is happening, and what should we do?</h1>
+    <p class="lead">Give the station a log and watch it build the brief for this incident: readings, floor plan,
+    people, grounded options, a decision you can approve. Try one of these to see it think.</p>
+    <div class="samples" id="samples"></div>
   </section>
 
-  <aside class="col col-right">
-    <section class="block">
-      <h2>console</h2>
-      <div id="console-empty" class="muted">the commander's decision will appear here</div>
-      <div id="console" class="hidden">
-        <div class="decision-line"><span class="muted">swarm proposes</span> <span class="action-chip" id="console-action">—</span></div>
-        <textarea id="dispatch-text" rows="3"></textarea>
-        <select id="override-action">
-          <option value="">approve as proposed</option>
-          <option value="contain">override: contain</option>
-          <option value="evacuate">override: evacuate</option>
-          <option value="observe">override: observe</option>
-        </select>
+  <!-- decision strip -->
+  <section class="strip hidden" id="strip">
+    <div class="stepper" id="stepper">
+      <span data-step="classify">classify</span><span data-step="investigate">investigate</span><span data-step="compile">compile</span><span data-step="decide">decide</span><span data-step="act">act</span>
+    </div>
+    <div class="decision hidden" id="decision">
+      <div class="dec-main">
+        <span class="action-chip" id="dec-action">—</span>
+        <span class="dec-conf" id="dec-conf"></span>
+        <p class="dec-why" id="dec-why"></p>
+      </div>
+      <div class="dec-side">
+        <textarea id="dispatch-text" rows="2" title="dispatch line"></textarea>
         <div class="row">
+          <select id="override-action">
+            <option value="">approve as proposed</option>
+            <option value="contain">override · contain</option>
+            <option value="evacuate">override · evacuate</option>
+            <option value="observe">override · observe</option>
+          </select>
           <button class="primary" id="btn-act">approve &amp; dispatch</button>
           <label class="check"><input type="checkbox" id="act-live"> live</label>
         </div>
         <div class="results" id="action-results"></div>
-        <div class="recompile">
-          <textarea id="note-text" rows="2" placeholder="operator update, e.g. oven power cut, hood running, smoke thinning"></textarea>
-          <div class="row"><button id="btn-recompile">recompile</button></div>
-        </div>
+        <div class="alts" id="dec-alts"></div>
       </div>
-    </section>
-    <section class="block">
-      <h2>sources</h2>
-      <div id="sources" class="sources"><span class="muted">every citation on screen maps to a real You.com result listed here</span></div>
-    </section>
-  </aside>
+    </div>
+  </section>
+
+  <!-- situation -->
+  <section class="situation hidden" id="sec-situation">
+    <div class="sit-text">
+      <div id="slot-header"></div>
+      <div id="slot-banner"></div>
+      <details class="narr"><summary>incident log</summary><pre id="narrative"></pre></details>
+      <div class="metrics" id="metrics"></div>
+    </div>
+    <div class="sit-map" id="slot-map"></div>
+  </section>
+
+  <section class="sec hidden" id="sec-readings"><h2>readings</h2><div class="tiles" id="slot-readings"></div></section>
+  <section class="sec hidden" id="sec-people"><h2>people and routes</h2><div class="tiles two" id="slot-people"></div></section>
+  <section class="sec hidden" id="sec-response"><h2>what to do</h2><div class="tiles two" id="slot-response"></div></section>
+  <section class="sec hidden" id="sec-context"><h2>outside the building</h2><div class="tiles" id="slot-context"></div></section>
+
+  <section class="sec hidden" id="sec-update">
+    <h2>what changed?</h2>
+    <div class="update">
+      <textarea id="note-text" rows="2" placeholder="e.g. oven power cut, extraction hood confirmed running, smoke thinning"></textarea>
+      <button id="btn-recompile">recompile the brief</button>
+    </div>
+  </section>
+
+  <section class="sec hidden" id="sec-trace">
+    <h2>how the swarm got here</h2>
+    <div class="lanes" id="lanes">
+      <div class="lane" data-agent="sensors"><div class="lane-h"><span class="dot"></span>sensor analyst<span class="state">idle</span></div><div class="lane-b"></div></div>
+      <div class="lane" data-agent="facility"><div class="lane-h"><span class="dot"></span>facility lead<span class="state">idle</span></div><div class="lane-b"></div></div>
+      <div class="lane" data-agent="research"><div class="lane-h"><span class="dot"></span>field researcher<span class="state">idle</span></div><div class="lane-b"></div></div>
+      <div class="lane" data-agent="commander"><div class="lane-h"><span class="dot"></span>commander<span class="state">idle</span></div><div class="lane-b"></div></div>
+    </div>
+    <details class="log"><summary>raw event log</summary><div class="timeline" id="timeline"></div></details>
+  </section>
+
+  <section class="sec hidden" id="sec-sources"><h2>sources</h2><div id="sources" class="sources"></div></section>
 </main>
 
 <div class="toasts" id="toasts"></div>

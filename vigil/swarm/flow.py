@@ -430,6 +430,8 @@ class IncidentFlow(Flow[FlowState]):
             elif ev["type"] == "final":
                 ctx.run.llm_calls += 1
                 ctx.emit("compile.done", owner=owner, latency_ms=ev.get("latency_ms"), replayed=ev.get("replayed", False), count=len(comps), provisional=provisional)
+        if not provisional:
+            ctx.drop_provisional(owner)
         return comps
 
     # ------------------------------------------------------------------ 4. command

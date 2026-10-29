@@ -92,6 +92,14 @@ class RunContext:
                 self.run.timings.first_component_ms = self.run.timings.mark()
         self.emit("component", component=comp.model_dump())
 
+    def drop_provisional(self, owner: str) -> None:
+        """Remove provisional components of an owner that the verified pass did not replace."""
+        with self._lock:
+            stale = [c for c in self.run.components if c.owner == owner and c.provisional]
+            self.run.components = [c for c in self.run.components if not (c.owner == owner and c.provisional)]
+        for c in stale:
+            self.emit("component.remove", key=c.key)
+
     def scrub_source_ids(self, props: dict[str, Any]) -> dict[str, Any]:
         """Drop citations that do not correspond to a real grounding call."""
         known = self.known_source_ids()
