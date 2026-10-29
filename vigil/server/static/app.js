@@ -27,7 +27,7 @@
   function setPill(id, text, cls) {
     const p = $(id);
     p.textContent = text;
-    p.className = "pill " + (cls || "");
+    p.className = cls || "";
   }
   async function api(path, body) {
     const res = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
@@ -54,11 +54,11 @@
     state.selected = [];
     state.decision = null;
     $("grid").innerHTML = "";
-    $("sources").innerHTML = '<span class="muted">Waiting for grounding calls…</span>';
+    $("sources").innerHTML = '<span class="muted">waiting for grounding calls</span>';
     $("console").classList.add("hidden");
     $("console-empty").classList.remove("hidden");
     $("action-results").innerHTML = "";
-    $("metrics").innerHTML = '<span class="muted">—</span>';
+    $("metrics").innerHTML = "";
     document.querySelectorAll(".agent").forEach((a) => { a.className = "agent"; a.querySelector(".state").textContent = "idle"; a.querySelector(".agent-body").innerHTML = ""; });
     $("timeline").innerHTML = "";
   }
@@ -81,7 +81,7 @@
   function renderSources(sources) {
     state.sources = sources;
     const box = $("sources");
-    if (!sources.length) { box.innerHTML = '<span class="muted">No grounding calls yet.</span>'; return; }
+    if (!sources.length) { box.innerHTML = '<span class="muted">no grounding calls yet</span>'; return; }
     box.innerHTML = sources.map((s) => `<div class="src" id="src-${esc(s.id)}"><span class="id">${esc(s.id)}</span><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a><span class="kind">${esc(s.kind)}</span><div class="sn">${esc(s.snippet)}</div></div>`).join("");
   }
   function highlightSource(id) {
@@ -124,7 +124,7 @@
       ["sources", m.sources ?? "—"],
       ["components", `${m.components ?? "—"}${m.invalid_components ? ` (${m.invalid_components} rejected)` : ""}`],
       ["p50 model latency", llm.p50_latency_ms != null ? llm.p50_latency_ms + " ms" : "—"],
-    ].map(([k, v]) => `<div><b>${esc(v)}</b><br><span>${esc(k)}</span></div>`).join("");
+    ].map(([k, v]) => `<span>${esc(k)} <b>${esc(v)}</b></span>`).join("");
   }
 
   function addActionResult(r) {
@@ -144,14 +144,14 @@
 
   // ------------------------------------------------------------------ events
   function handle(ev) {
-    if (ev.type === "hello") { state.team = ev.team; state.dryRun = ev.dry_run; setPill("pill-team", "team " + ev.team); setPill("pill-mode", ev.offline ? "offline replay" : ev.dry_run ? "dry-run actions" : "live actions", ev.dry_run ? "warn" : "live"); return; }
+    if (ev.type === "hello") { state.team = ev.team; state.dryRun = ev.dry_run; setPill("pill-team", ev.team); setPill("pill-mode", ev.offline ? "offline" : ev.dry_run ? "dry-run" : "live", ev.dry_run ? "warn" : "live"); return; }
     if (ev.type === "run.created") {
       if (!state.following && ev.run_id !== state.runId) return;
       state.runId = ev.run_id;
       resetStage();
       state.facility = ev.facility || null;
       const inc = ev.incident || {};
-      $("narrative").textContent = `${inc.incident_id || ""}${inc.tick_id != null ? " · tick " + inc.tick_id : ""} · ${inc.source || ""}${ev.replayed ? " · replay" : ""}\n${inc.narrative || ""}`;
+      $("narrative").innerHTML = `<span class="id">${esc(inc.incident_id || "")}${inc.tick_id != null ? " · tick " + inc.tick_id : ""} · ${esc(inc.source || "")}${ev.replayed ? " · replay" : ""}</span>\n${esc(inc.narrative || "")}`;
       timeline(`run ${ev.run_id} started (${inc.source})`, "", ev.t);
       refreshRuns();
       return;
@@ -180,7 +180,7 @@
     const proto = location.protocol === "https:" ? "wss" : "ws";
     const ws = new WebSocket(`${proto}://${location.host}/ws`);
     ws.onopen = () => setPill("pill-ws", "connected", "live");
-    ws.onclose = () => { setPill("pill-ws", "reconnecting…", "warn"); setTimeout(connect, 1500); };
+    ws.onclose = () => { setPill("pill-ws", "reconnecting", "warn"); setTimeout(connect, 1500); };
     ws.onmessage = (m) => { try { handle(JSON.parse(m.data)); } catch (e) { console.error(e); } };
   }
 
@@ -190,7 +190,7 @@
       const runs = await api("/api/runs");
       const sel = $("run-select");
       const cur = sel.value;
-      sel.innerHTML = '<option value="">(follow latest)</option>' + runs.slice().reverse().map((r) => `<option value="${r.run_id}">${esc(r.incident_id)}${r.tick_id != null ? " · t" + r.tick_id : ""} · ${esc(r.status)}${r.action ? " · " + r.action : ""}</option>`).join("");
+      sel.innerHTML = '<option value="">latest</option>' + runs.slice().reverse().map((r) => `<option value="${r.run_id}">${esc(r.incident_id)}${r.tick_id != null ? " · t" + r.tick_id : ""} · ${esc(r.status)}${r.action ? " · " + r.action : ""}</option>`).join("");
       sel.value = state.following ? "" : cur;
     } catch (e) { /* server may be a replay-only host */ }
   }
@@ -200,7 +200,7 @@
     state.runId = runId;
     resetStage();
     state.facility = run.facility;
-    $("narrative").textContent = `${run.incident.incident_id}${run.incident.tick_id != null ? " · tick " + run.incident.tick_id : ""} · ${run.incident.source}\n${run.incident.narrative}`;
+    $("narrative").innerHTML = `<span class="id">${esc(run.incident.incident_id)}${run.incident.tick_id != null ? " · tick " + run.incident.tick_id : ""} · ${esc(run.incident.source)}</span>\n${esc(run.incident.narrative)}`;
     (run.components || []).slice().sort((a, b) => a.order - b.order).forEach(upsertComponent);
     renderSources(run.sources || []);
     if (run.decision) showDecision(run.decision);
@@ -214,10 +214,10 @@
   async function loadFixtures() {
     const data = await api("/api/fixtures");
     const sel = $("fixture-select");
-    const groups = { vigil: "Vigil incidents", organizers: "Organizer fixtures" };
+    const groups = { vigil: "incidents", organizers: "organizer fixtures" };
     sel.innerHTML = Object.keys(groups).map((g) => `<optgroup label="${groups[g]}">` + data.fixtures.filter((f) => f.group === g).map((f) => `<option value="${esc(f.name)}" title="${esc(f.description)}">${esc(f.name)} (${f.ticks} tick${f.ticks === 1 ? "" : "s"})</option>`).join("") + "</optgroup>").join("");
     const rs = $("replay-select");
-    rs.innerHTML = data.recordings.length ? data.recordings.map((r) => `<option value="${esc(r.name)}">${esc(r.name)} · ${esc(r.incident_id || "")}</option>`).join("") : '<option value="">(no recordings yet)</option>';
+    rs.innerHTML = data.recordings.length ? data.recordings.map((r) => `<option value="${esc(r.name)}">${esc(r.name)}</option>`).join("") : '<option value="">no recordings yet</option>';
   }
   function follow() { state.following = true; $("run-select").value = ""; }
 
@@ -237,7 +237,7 @@
     $("btn-act").disabled = true;
     try {
       const res = await api(`/api/runs/${state.runId}/act`, { action: $("override-action").value || null, dry_run: $("act-live").checked ? false : null });
-      if (!res.results.length) toast("nothing to do (observe)", "");
+      if (!res.results.length) toast("nothing to dispatch for observe", "");
     } catch (e) { toast(e.message, "fail"); $("btn-act").disabled = false; }
   });
   $("btn-recompile").addEventListener("click", async () => {
@@ -248,7 +248,7 @@
 
   // URL hooks for demos and offline replay: ?replay=<recording> or ?fixture=<name>
   const params = new URLSearchParams(location.search);
-  const auto = params.get("replay") ? { source: "replay", recording: params.get("replay") } : params.get("fixture") ? { source: "fixture", fixture: params.get("fixture") } : null;
+  const auto = params.get("replay") ? { source: "replay", recording: params.get("replay"), speed: Number(params.get("speed") || 1) } : params.get("fixture") ? { source: "fixture", fixture: params.get("fixture") } : null;
   if (auto) setTimeout(() => { follow(); api("/api/incidents", auto).catch((e) => toast(e.message, "fail")); }, 600);
 
   loadFixtures().catch(() => {});

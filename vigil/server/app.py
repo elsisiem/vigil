@@ -87,6 +87,11 @@ async def index() -> FileResponse:
     return FileResponse(STATIC / "index.html")
 
 
+@app.get("/app")
+async def station() -> FileResponse:
+    return FileResponse(STATIC / "app.html")
+
+
 # ---------------------------------------------------------------------- read endpoints
 @app.get("/api/health")
 async def health() -> dict[str, Any]:
@@ -176,6 +181,7 @@ class StartBody(BaseModel):
     auto_act: bool = False
     recording: str | None = None
     record: bool = True
+    speed: float = 1.0
 
 
 def _new_ctx(incident: Incident, team: str | None, auto_act: bool) -> RunContext:
@@ -205,7 +211,7 @@ async def start(body: StartBody) -> dict[str, Any]:
         if not body.recording:
             raise HTTPException(400, "recording is required")
         run_id = uuid.uuid4().hex[:10]
-        asyncio.create_task(replay(body.recording, bus.publish, run_id=run_id))
+        asyncio.create_task(replay(body.recording, bus.publish, run_id=run_id, speed=max(0.1, body.speed)))
         return {"run_ids": [run_id], "replay": True}
 
     if body.source == "fixture":

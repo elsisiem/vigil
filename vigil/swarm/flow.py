@@ -578,53 +578,6 @@ class IncidentFlow(Flow[FlowState]):
 
 
 # ---------------------------------------------------------------------- actions
-def _after_action_body(ctx: RunContext) -> str:
-    run = ctx.run
-    inc = run.incident
-    cls = run.classification
-    d = run.decision
-    assert cls is not None and d is not None
-    lines = [
-        f"# Post-incident review: {inc.incident_id}",
-        "",
-        f"- Facility: {ctx.facility.name}, {ctx.facility.address}",
-        f"- Received: {inc.received_at.isoformat(timespec='seconds')} (source: {inc.source}, tick {inc.tick_id})",
-        f"- Classification: **{cls.incident_class.value}**, severity {cls.severity}/5, {cls.people_at_risk} people at risk",
-        f"- Decision: **{d.action}** (confidence {d.confidence:.2f})",
-        f"- Rationale: {d.rationale}",
-        f"- Dispatch: `{d.dispatch_message}`",
-        "",
-        "## Incident log",
-        "",
-        "```",
-        inc.narrative[:2000],
-        "```",
-        "",
-        "## Runbook",
-        "",
-    ]
-    for s in d.runbook:
-        cite = f" [{s.source_id}]" if s.source_id else ""
-        lines.append(f"- [ ] {s.text} — _{s.owner}_{cite}")
-    lines += ["", "## Specialist findings", ""]
-    for r in run.reports:
-        lines += [f"### {SPECIALISTS[r.agent].role}", "", r.findings[:2500], ""]
-    lines += ["## Sources", ""]
-    for s in run.sources:
-        lines.append(f"- [{s.id}] [{s.title}]({s.url})")
-    t = run.timings
-    lines += [
-        "",
-        "## Run metrics",
-        "",
-        f"- First component: {t.first_component_ms} ms; classified: {t.classified_ms} ms; specialists: {t.specialists_ms} ms; decided: {t.decided_ms} ms",
-        f"- Model calls: {run.llm_calls}; grounding sources: {len(run.sources)}; components: {len(run.components)}",
-        "",
-        "_Opened automatically by Vigil through One's GitHub connection._",
-    ]
-    return "\n".join(lines)
-
-
 async def perform_actions(ctx: RunContext, *, override_action: str | None = None, dry_run: bool | None = None) -> list[ActionResult]:
     """Dispatch, report to the feed, and open the after-action issue. Called by the flow in auto mode or by the operator."""
     run = ctx.run
@@ -659,8 +612,11 @@ async def perform_actions(ctx: RunContext, *, override_action: str | None = None
         results.append(res)
         ctx.emit("action", result=res.model_dump())
 
-    title = f"Post-incident review: {inc.incident_id} — {d.action} ({run.classification.incident_class.value if run.classification else 'unknown'})"
-    res = await asyncio.to_thread(get_one().create_github_issue, title=title, body=_after_action_body(ctx), labels=["post-incident", d.action], dry_run=dry)
+    from ..actions.after_action import after_action_body, after_action_title
+
+    res = await asyncio.to_thread(
+        get_one().create_github_issue, title=after_action_title(ctx), body=after_action_body(ctx), labels=["post-incident", d.action], dry_run=dry
+    )
     results.append(res)
     ctx.emit("action", result=res.model_dump())
 

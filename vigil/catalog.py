@@ -252,6 +252,8 @@ def strictify(schema: dict[str, Any]) -> dict[str, Any]:
     schema = _inline_refs(copy.deepcopy(schema))
 
     def walk(node: Any) -> Any:
+        """Walk a schema node. The `properties` mapping is handled apart so a property that happens
+        to be called `title` or `default` is never mistaken for schema metadata."""
         if isinstance(node, dict):
             node.pop("title", None)
             node.pop("default", None)
@@ -259,7 +261,10 @@ def strictify(schema: dict[str, Any]) -> dict[str, Any]:
                 node["additionalProperties"] = False
                 node["required"] = list(node["properties"].keys())
             for k, v in list(node.items()):
-                node[k] = walk(v)
+                if k == "properties" and isinstance(v, dict):
+                    node[k] = {name: walk(sub) for name, sub in v.items()}
+                else:
+                    node[k] = walk(v)
             return node
         if isinstance(node, list):
             return [walk(x) for x in node]

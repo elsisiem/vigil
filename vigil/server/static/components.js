@@ -15,7 +15,7 @@
   const pretty = (s) => esc(String(s ?? "").replace(/_/g, " "));
 
   function card(name, owner, bodyHtml, span) {
-    const c = el(`<div class="card ${span || ""}"><div class="card-head"><h3>${esc(name)}</h3><span class="prov">provisional · verifying</span><span class="owner ${esc(owner)}">${esc(owner)}</span></div><div class="card-body"></div></div>`);
+    const c = el(`<div class="card ${span || ""}"><div class="card-head"><h3>${esc(name)}</h3><span class="prov">provisional</span><span class="owner ${esc(owner)}">${esc(owner)}</span></div><div class="card-body"></div></div>`);
     c.querySelector(".card-body").innerHTML = bodyHtml;
     return c;
   }
@@ -27,21 +27,21 @@
   const cite1 = (id) => (id ? cites([id]) : "");
 
   const TITLES = {
-    SensorPanel: "Sensors", TrendTimeline: "Trend", AnomalyAssessment: "Anomaly assessment",
-    FacilityMap: "Floor plan", PeopleAtRisk: "People at risk", EvacuationRoute: "Evacuation routes",
-    ResponseOptions: "Response options", ExternalContext: "Outside the building",
-    DecisionPanel: "Decision", DispatchComposer: "Dispatch", Runbook: "Runbook (next 10 minutes)",
-    MonitorPanel: "Monitoring",
+    SensorPanel: "sensors", TrendTimeline: "trend", AnomalyAssessment: "anomaly",
+    FacilityMap: "floor plan", PeopleAtRisk: "people at risk", EvacuationRoute: "routes",
+    ResponseOptions: "response options", ExternalContext: "outside the building",
+    DecisionPanel: "decision", DispatchComposer: "dispatch", Runbook: "runbook · next 10 minutes",
+    MonitorPanel: "monitoring",
   };
 
   const R = {};
 
   R.IncidentHeader = (p) => {
-    const sevColor = p.severity >= 4 ? "var(--danger)" : p.severity === 3 ? "var(--warn)" : p.severity > 0 ? "var(--accent)" : "#2a3647";
+    const sevColor = p.severity >= 4 ? "var(--danger)" : p.severity === 3 ? "var(--warn)" : p.severity > 0 ? "var(--accent)" : "var(--line)";
     return el(`<div class="card header">
       <div style="flex:1;min-width:0">
         <div class="title">${esc(p.title)}</div>
-        <div class="meta">${esc(p.incident_id)} · ${esc(p.facility)} · source ${esc(p.source)} · ${esc((p.received_at || "").replace("T", " ").slice(0, 19))}</div>
+        <div class="meta">${esc(p.incident_id)} · ${esc(p.facility)} · ${esc(p.source)} · ${esc((p.received_at || "").replace("T", " ").slice(0, 16))}</div>
       </div>
       <div><span class="cls">${pretty(p.incident_class)}</span>
         <span class="sev l${p.severity}" style="--sev-color:${sevColor}" title="severity ${p.severity}/5"><i></i><i></i><i></i><i></i><i></i></span></div>
@@ -49,12 +49,12 @@
   };
 
   R.SeverityBanner = (p) => el(`<div class="banner ${p.is_control ? "control" : "l" + p.level}">
-      <span>${esc(p.label)}</span><span class="muted">severity ${p.level}/5</span>
+      <span>${esc(p.label)}</span><span style="opacity:.7">severity ${p.level}/5</span>
       <span class="people">${p.people_at_risk ? `${p.people_at_risk} ${p.people_at_risk === 1 ? "person" : "people"} at risk` : "nobody at risk"}</span>
     </div>`);
 
   R.SensorPanel = (p) => {
-    const rows = (p.readings || []).map((r) => `<tr><td><span class="status ${esc(r.status)}"></span>${pretty(r.metric)}</td><td class="val">${fmt(r.value)} ${esc(r.unit)}</td><td class="note">${esc(r.note)}</td></tr>`).join("");
+    const rows = (p.readings || []).map((r) => `<tr><td><span class="status-dot ${esc(r.status)}"></span>${pretty(r.metric)}</td><td class="val">${fmt(r.value)} ${esc(r.unit)}</td><td class="note">${esc(r.note)}</td></tr>`).join("");
     return card(`${TITLES.SensorPanel} · ${pretty(p.sector)}`, "sensors", `<table class="readings">${rows}</table>`, "span-4");
   };
 
@@ -66,13 +66,13 @@
     const x = (i) => pad + (i * (W - 2 * pad)) / Math.max(1, pts.length - 1);
     const y = (v) => (max === min ? H / 2 : H - pad - ((v - min) * (H - 2 * pad)) / (max - min));
     const d = pts.map((pt, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(pt.v).toFixed(1)}`).join(" ");
-    const dots = pts.map((pt, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(pt.v).toFixed(1)}" r="3.5" fill="var(--accent)"></circle>`).join("");
-    const labels = pts.map((pt, i) => `<text x="${x(i).toFixed(1)}" y="${H - 1}" font-size="9" fill="#5d6f86" text-anchor="${i === 0 ? "start" : i === pts.length - 1 ? "end" : "middle"}">${esc(pt.t)}</text>`).join("");
+    const dots = pts.map((pt, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(pt.v).toFixed(1)}" r="3"></circle>`).join("");
+    const labels = pts.map((pt, i) => `<text x="${x(i).toFixed(1)}" y="${H - 1}" font-size="9" text-anchor="${i === 0 ? "start" : i === pts.length - 1 ? "end" : "middle"}">${esc(pt.t)}</text>`).join("");
     const arrow = p.direction === "rising" ? "↑" : p.direction === "falling" ? "↓" : "→";
-    const body = `<div class="row" style="margin:0 0 4px"><b>${pretty(p.metric)}</b> <span class="muted">${esc(p.unit)} · ${esc(p.direction)} ${arrow}</span><span class="muted" style="margin-left:auto">${fmt(vals[0])} → ${fmt(vals[vals.length - 1])}</span></div>
-      <svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2"></path>${dots}${labels}</svg>
+    const body = `<div class="note" style="margin-bottom:4px">${esc(p.unit)} · ${esc(p.direction)} ${arrow} · ${fmt(vals[0])} → ${fmt(vals[vals.length - 1])}</div>
+      <svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke-width="1.5"></path>${dots}${labels}</svg>
       <div class="note">${esc(p.note)}</div>`;
-    return card(`${TITLES.TrendTimeline} · ${pretty(p.sector)}`, "sensors", body, "span-4");
+    return card(`${TITLES.TrendTimeline} · ${pretty(p.metric)} · ${pretty(p.sector)}`, "sensors", body, "span-4");
   };
 
   R.AnomalyAssessment = (p) => {
@@ -80,10 +80,10 @@
     const r = 30, c = 2 * Math.PI * r;
     const color = score >= 0.7 ? "var(--danger)" : score >= 0.4 ? "var(--warn)" : "var(--ok)";
     const body = `<div class="ring">
-      <svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="${r}" fill="none" stroke="#1b2533" stroke-width="7"></circle>
+      <svg viewBox="0 0 72 72"><circle class="track" cx="36" cy="36" r="${r}" fill="none" stroke-width="7"></circle>
         <circle cx="36" cy="36" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * score).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 36 36)"></circle>
-        <text x="36" y="41" text-anchor="middle" font-size="16" font-weight="700" fill="#e6edf3">${(score * 100).toFixed(0)}</text></svg>
-      <div><div class="big">${pretty(p.matched_signature)}</div><div class="muted small">closest hazard signature · match confidence ${(p.confidence * 100).toFixed(0)}%</div></div></div>
+        <text x="36" y="41" text-anchor="middle" font-size="15" font-weight="500">${(score * 100).toFixed(0)}</text></svg>
+      <div><div class="big">${pretty(p.matched_signature)}</div><div class="note">closest hazard signature · match ${(p.confidence * 100).toFixed(0)}%</div></div></div>
       <div class="note" style="margin-top:8px">${esc(p.rationale)}</div>`;
     return card(TITLES.AnomalyAssessment, "sensors", body, "span-4");
   };
@@ -118,18 +118,18 @@
     }).join("");
     return `<svg class="floorplan" viewBox="0 0 ${facility.width} ${facility.height}">
       <defs>
-        <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="14" height="14" fill="#182130"></rect><line x1="0" y1="0" x2="0" y2="14" stroke="rgba(242,169,59,.55)" stroke-width="4"></line></pattern>
+        <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="14" height="14" fill="#f1f1f3"></rect><line x1="0" y1="0" x2="0" y2="14" stroke="rgba(178,107,0,.45)" stroke-width="4"></line></pattern>
         <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ok)"></path></marker>
       </defs>${sectors}${paths}</svg>
-      <div class="legend"><span><i style="background:rgba(239,83,80,.6)"></i>affected</span><span><i style="background:rgba(242,169,59,.6)"></i>isolate</span><span><i style="background:rgba(47,182,124,.5)"></i>safe</span><span><i style="background:rgba(79,140,255,.6)"></i>exit</span>${routes && routes.length ? '<span><i style="background:var(--ok)"></i>route</span>' : ""}</div>
+      <div class="legend"><span><i style="background:var(--danger)"></i>affected</span><span><i style="background:var(--warn)"></i>isolate</span><span><i style="background:var(--ok)"></i>safe</span><span><i style="background:var(--accent)"></i>exit</span>${routes && routes.length ? '<span><i style="background:var(--ok)"></i>route</span>' : ""}</div>
       <div class="note" style="margin-top:6px">${esc(p.caption)}</div>`;
   }
 
   R.FacilityMap = (p, ctx) => card(`${TITLES.FacilityMap} · ${esc(ctx.facility ? ctx.facility.name : "")}`, "facility", floorplan(ctx.facility, p, ctx.routes), "span-8");
 
   R.PeopleAtRisk = (p) => {
-    const groups = (p.groups || []).map((g) => `<div class="group"><div class="n">${fmt(g.count)}</div><div><b>${pretty(g.sector)}</b></div><div class="s">${esc(g.status)}</div><div class="s" style="color:var(--text);margin-top:4px">${esc(g.action)}</div></div>`).join("");
-    return card(`${TITLES.PeopleAtRisk} · ${fmt(p.total_at_risk)} total`, "facility", `<div class="groups">${groups}</div>`, "span-4");
+    const groups = (p.groups || []).map((g) => `<div class="group"><div class="n">${fmt(g.count)}</div><div><b>${pretty(g.sector)}</b></div><div class="s">${esc(g.status)}</div><div class="a">${esc(g.action)}</div></div>`).join("");
+    return card(`${TITLES.PeopleAtRisk} · ${fmt(p.total_at_risk)}`, "facility", `<div class="groups">${groups}</div>`, "span-4");
   };
 
   R.EvacuationRoute = (p) => {
@@ -139,7 +139,7 @@
 
   R.ResponseOptions = (p, ctx) => {
     const opts = (p.options || []).map((o) => `<label class="opt"><input type="checkbox" value="${esc(o.id)}" ${ctx.selected && ctx.selected.includes(o.id) ? "checked" : ""}><div><div class="l">${esc(o.label)}${o.recommended ? '<span class="badge rec">recommended</span>' : ""}<span class="badge ${esc(o.risk)}">${esc(o.risk)} risk</span></div><div class="r">${esc(o.rationale)} ${cites(o.source_ids)}</div></div></label>`).join("");
-    const c = card(TITLES.ResponseOptions, "research", `<div class="options">${opts}</div><div class="note" style="margin-top:6px">Armed options are included when the station recompiles.</div>`, "span-6");
+    const c = card(TITLES.ResponseOptions, "research", `<div class="options">${opts}</div><div class="note" style="margin-top:8px">armed options are folded into the next recompile</div>`, "span-6");
     c.addEventListener("change", () => {
       const ids = [...c.querySelectorAll("input:checked")].map((i) => i.value);
       ctx.select && ctx.select(ids);
@@ -154,14 +154,14 @@
 
   R.DecisionPanel = (p) => {
     const alts = (p.alternatives || []).map((a) => `<div><b>${esc(a.action)}</b> — ${esc(a.why_not)}</div>`).join("");
-    const body = `<div class="decision-line"><span class="action-chip ${esc(p.action)}">${esc(p.action)}</span><span class="muted small">confidence ${(p.confidence * 100).toFixed(0)}%</span></div>
+    const body = `<div class="decision-line"><span class="action-chip ${esc(p.action)}">${esc(p.action)}</span><span class="muted">confidence ${(p.confidence * 100).toFixed(0)}%</span></div>
       <div class="confbar"><i style="width:${(p.confidence * 100).toFixed(0)}%"></i></div>
       <div>${esc(p.rationale)}</div>
       <div class="alts" style="margin-top:8px">${alts}</div>`;
     return card(TITLES.DecisionPanel, "commander", body, "span-6");
   };
 
-  R.DispatchComposer = (p) => card(`${TITLES.DispatchComposer} · ${esc(p.channel)}`, "commander", `<div class="dispatch">${esc(p.message)}</div><div class="note" style="margin-top:6px">${p.requires_approval ? "Awaiting operator approval in the console." : "Dispatched automatically."}</div>`, "span-6");
+  R.DispatchComposer = (p) => card(`${TITLES.DispatchComposer} · ${esc(p.channel)}`, "commander", `<div class="dispatch">${esc(p.message)}</div><div class="note" style="margin-top:6px">${p.requires_approval ? "awaiting approval in the console" : "dispatched automatically"}</div>`, "span-6");
 
   R.Runbook = (p) => {
     const steps = (p.steps || []).map((s) => `<label><input type="checkbox"><div>${esc(s.text)}<span class="own">${pretty(s.owner)}</span> ${cite1(s.source_id)}</div></label>`).join("");
