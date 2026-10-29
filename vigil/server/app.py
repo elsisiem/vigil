@@ -262,9 +262,9 @@ class ActBody(BaseModel):
 async def act(run_id: str, body: ActBody) -> dict[str, Any]:
     ctx = RUNS.get(run_id)
     if not ctx:
-        raise HTTPException(404, "unknown run")
+        raise HTTPException(404, "This run is not on this server (a replay, or the server restarted). Start a new run to act on it.")
     if ctx.run.decision is None:
-        raise HTTPException(409, "the swarm has not decided yet")
+        raise HTTPException(409, "The swarm has not decided yet.")
     results = await perform_actions(ctx, override_action=body.action, dry_run=body.dry_run)
     return {"results": [r.model_dump() for r in results]}
 

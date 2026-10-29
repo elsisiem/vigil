@@ -16,7 +16,7 @@
 
   function toast(text, cls) { const t = document.createElement("div"); t.className = "toast " + (cls || ""); t.textContent = text; $("toasts").appendChild(t); setTimeout(() => t.remove(), 6000); }
   function log(text, level, t) { const d = document.createElement("div"); d.className = level || ""; d.innerHTML = `<span class="t">${t != null ? Number(t).toFixed(1) + "s" : ""}</span>${esc(text)}`; const tl = $("timeline"); tl.appendChild(d); tl.scrollTop = tl.scrollHeight; }
-  async function api(path, body) { const res = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}); if (!res.ok) throw new Error((await res.text()) || res.statusText); return res.json(); }
+  async function api(path, body) { const res = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}); if (!res.ok) { let msg = res.statusText; try { const j = await res.json(); msg = j.detail || msg; } catch (e) {} throw new Error(msg); } return res.json(); }
   const show = (id, on = true) => $(id).classList.toggle("hidden", !on);
   function setStatus(text, cls) { const p = $("pill-status"); p.textContent = text; p.className = cls || ""; }
   function step(name) { const order = ["classify", "investigate", "compile", "decide", "act"]; const j = order.indexOf(name); document.querySelectorAll("#stepper span").forEach((s) => { const i = order.indexOf(s.dataset.step); s.className = i < j ? "done" : i === j ? "active" : ""; }); }
@@ -78,7 +78,7 @@
 
   function showDecisionPanel(p) {
     show("decision", true);
-    if (!state.decision) { $("btn-act").disabled = true; $("btn-act").textContent = "deciding"; }
+    if (!state.decision && !state.replay) { $("btn-act").disabled = true; $("btn-act").textContent = "deciding"; }
     const chip = $("dec-action"); chip.textContent = p.action; chip.className = "action-chip " + p.action;
     $("dec-conf").textContent = `confidence ${Math.round(p.confidence * 100)}%`;
     $("dec-why").textContent = p.rationale;
@@ -86,7 +86,8 @@
   }
   function showDecision(d) {
     state.decision = d; showDecisionPanel(d);
-    $("dispatch-text").value = d.dispatch_message || ""; $("override-action").value = ""; $("btn-act").disabled = false; $("btn-act").textContent = "approve & dispatch";
+    $("dispatch-text").value = d.dispatch_message || ""; $("override-action").value = "";
+    if (!state.replay) { $("btn-act").disabled = false; $("btn-act").textContent = "approve & dispatch"; }
     lane("commander", "done", `decided <b>${esc(d.action)}</b> · ${Math.round(d.confidence * 100)}%`);
     if (d.guardrail_note) { log("guardrail: " + d.guardrail_note, "warn"); lane("commander", "done", `policy: ${esc(d.guardrail_note)}`); }
     step("act");
@@ -111,7 +112,9 @@
     if (ev.type === "hello") { state.team = ev.team; state.dryRun = ev.dry_run; return; }
     if (ev.type === "run.created") {
       if (!state.following && ev.run_id !== state.runId) return;
-      state.runId = ev.run_id; reset(); state.facility = ev.facility || null;
+      state.runId = ev.run_id; reset(); state.facility = ev.facility || null; state.replay = !!ev.replayed;
+      $("btn-act").disabled = state.replay; $("btn-recompile").disabled = state.replay;
+      if (state.replay) { $("btn-act").textContent = "replay: actions off"; $("btn-recompile").textContent = "replay: recompile off"; } else { $("btn-recompile").textContent = "recompile"; }
       $("narrative").textContent = (ev.incident || {}).narrative || "";
       log(`run ${ev.run_id} · ${(ev.incident || {}).source}`, "", ev.t);
       step("classify"); setStatus("classifying", "busy"); refreshRuns(); return;
