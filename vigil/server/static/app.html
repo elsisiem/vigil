@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vigil · station</title>
 <link rel="stylesheet" href="/static/styles.css">
+<script>try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark";}catch(e){}</script>
 </head>
 <body class="station">
 <header class="top">
@@ -30,82 +31,82 @@
     <span id="pill-ws" class="faint">connecting</span>
   </div>
   <label class="runsel"><select id="run-select"><option value="">recent runs</option></select></label>
+  <button class="theme" id="theme-btn" title="light / dark">◐</button>
 </header>
 
 <main class="brief" id="brief">
-  <!-- empty state -->
   <section class="welcome" id="welcome">
     <h1 class="display">What is happening, and what should we do?</h1>
-    <p class="lead">Give the station a log and watch it build the brief for this incident: readings, floor plan,
-    people, grounded options, a decision you can approve. Try one of these to see it think.</p>
+    <p class="lead">Give the station a log. It builds the brief for that incident: readings, floor plan, people,
+    grounded options, and a decision you can approve.</p>
     <div class="samples" id="samples"></div>
   </section>
 
-  <!-- decision strip -->
-  <section class="strip hidden" id="strip">
-    <div class="stepper" id="stepper">
-      <span data-step="classify">classify</span><span data-step="investigate">investigate</span><span data-step="compile">compile</span><span data-step="decide">decide</span><span data-step="act">act</span>
-    </div>
-    <div class="decision hidden" id="decision">
-      <div class="dec-main">
-        <span class="action-chip" id="dec-action">—</span>
-        <span class="dec-conf" id="dec-conf"></span>
-        <p class="dec-why" id="dec-why"></p>
+  <div class="fold hidden" id="fold">
+    <section class="strip" id="strip">
+      <div class="stepper" id="stepper">
+        <span data-step="classify">classify</span><span data-step="investigate">investigate</span><span data-step="compile">compile</span><span data-step="decide">decide</span><span data-step="act">act</span>
+        <span class="metrics" id="metrics"></span>
       </div>
-      <div class="dec-side">
-        <textarea id="dispatch-text" rows="2" title="dispatch line"></textarea>
-        <div class="row">
-          <select id="override-action">
-            <option value="">approve as proposed</option>
-            <option value="contain">override · contain</option>
-            <option value="evacuate">override · evacuate</option>
-            <option value="observe">override · observe</option>
-          </select>
-          <button class="primary" id="btn-act">approve &amp; dispatch</button>
-          <label class="check"><input type="checkbox" id="act-live"> live</label>
+      <div class="decision hidden" id="decision">
+        <div class="dec-main">
+          <div><span class="action-chip" id="dec-action">—</span><span class="dec-conf" id="dec-conf"></span></div>
+          <p class="dec-why" id="dec-why"></p>
+          <div class="alts" id="dec-alts"></div>
         </div>
-        <div class="results" id="action-results"></div>
-        <div class="alts" id="dec-alts"></div>
+        <div class="dec-side">
+          <textarea id="dispatch-text" rows="2" title="dispatch line"></textarea>
+          <div class="row">
+            <select id="override-action">
+              <option value="">approve as proposed</option>
+              <option value="contain">override · contain</option>
+              <option value="evacuate">override · evacuate</option>
+              <option value="observe">override · observe</option>
+            </select>
+            <button class="primary" id="btn-act">approve &amp; dispatch</button>
+            <label class="check"><input type="checkbox" id="act-live"> live</label>
+          </div>
+          <div class="results" id="action-results"></div>
+        </div>
       </div>
+    </section>
+
+    <div class="cols">
+      <section class="col" id="col-sit">
+        <div id="slot-header"></div>
+        <div id="slot-banner"></div>
+        <div class="tiles one" id="slot-sit"></div>
+        <details class="narr"><summary>incident log</summary><pre id="narrative"></pre></details>
+      </section>
+      <section class="col" id="col-map">
+        <div id="slot-map"></div>
+        <div class="tiles compact" id="slot-readings"></div>
+      </section>
+      <section class="col" id="col-todo">
+        <h2 class="colh">what to do</h2>
+        <div class="tiles one" id="slot-todo"></div>
+        <div class="update">
+          <textarea id="note-text" rows="2" placeholder="what changed? e.g. oven power cut, hood running, smoke thinning"></textarea>
+          <button id="btn-recompile">recompile</button>
+        </div>
+      </section>
     </div>
-  </section>
+  </div>
 
-  <!-- situation -->
-  <section class="situation hidden" id="sec-situation">
-    <div class="sit-text">
-      <div id="slot-header"></div>
-      <div id="slot-banner"></div>
-      <details class="narr"><summary>incident log</summary><pre id="narrative"></pre></details>
-      <div class="metrics" id="metrics"></div>
-    </div>
-    <div class="sit-map" id="slot-map"></div>
-  </section>
-
-  <section class="sec hidden" id="sec-readings"><h2>readings</h2><div class="tiles" id="slot-readings"></div></section>
-  <section class="sec hidden" id="sec-people"><h2>people and routes</h2><div class="tiles two" id="slot-people"></div></section>
-  <section class="sec hidden" id="sec-response"><h2>what to do</h2><div class="tiles two" id="slot-response"></div></section>
-  <section class="sec hidden" id="sec-context"><h2>outside the building</h2><div class="tiles" id="slot-context"></div></section>
-
-  <section class="sec hidden" id="sec-update">
-    <h2>what changed?</h2>
-    <div class="update">
-      <textarea id="note-text" rows="2" placeholder="e.g. oven power cut, extraction hood confirmed running, smoke thinning"></textarea>
-      <button id="btn-recompile">recompile the brief</button>
-    </div>
-  </section>
-
-  <section class="sec hidden" id="sec-trace">
-    <h2>how the swarm got here</h2>
-    <div class="lanes" id="lanes">
-      <div class="lane" data-agent="sensors"><div class="lane-h"><span class="dot"></span>sensor analyst<span class="state">idle</span></div><div class="lane-b"></div></div>
-      <div class="lane" data-agent="facility"><div class="lane-h"><span class="dot"></span>facility lead<span class="state">idle</span></div><div class="lane-b"></div></div>
-      <div class="lane" data-agent="research"><div class="lane-h"><span class="dot"></span>field researcher<span class="state">idle</span></div><div class="lane-b"></div></div>
-      <div class="lane" data-agent="commander"><div class="lane-h"><span class="dot"></span>commander<span class="state">idle</span></div><div class="lane-b"></div></div>
-    </div>
-    <details class="log"><summary>raw event log</summary><div class="timeline" id="timeline"></div></details>
-  </section>
-
-  <section class="sec hidden" id="sec-sources"><h2>sources</h2><div id="sources" class="sources"></div></section>
+  <div class="below hidden" id="below">
+    <section class="sec hidden" id="sec-context"><h2>outside the building</h2><div class="tiles" id="slot-context"></div></section>
+    <section class="sec" id="sec-trace">
+      <h2>how the swarm got here</h2>
+      <div class="lanes" id="lanes">
+        <div class="lane" data-agent="sensors"><div class="lane-h"><span class="dot"></span>sensor analyst<span class="state">idle</span></div><div class="lane-b"></div></div>
+        <div class="lane" data-agent="facility"><div class="lane-h"><span class="dot"></span>facility lead<span class="state">idle</span></div><div class="lane-b"></div></div>
+        <div class="lane" data-agent="research"><div class="lane-h"><span class="dot"></span>field researcher<span class="state">idle</span></div><div class="lane-b"></div></div>
+        <div class="lane" data-agent="commander"><div class="lane-h"><span class="dot"></span>commander<span class="state">idle</span></div><div class="lane-b"></div></div>
+      </div>
+      <details class="log"><summary>raw event log</summary><div class="timeline" id="timeline"></div></details>
+    </section>
+    <section class="sec hidden" id="sec-sources"><h2>sources</h2><div id="sources" class="sources"></div></section>
+  </div>
 </main>
 
 <div class="toasts" id="toasts"></div>

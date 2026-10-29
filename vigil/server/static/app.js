@@ -5,12 +5,12 @@
 
   const SLOT = {
     IncidentHeader: "slot-header", SeverityBanner: "slot-banner", FacilityMap: "slot-map",
-    SensorPanel: "slot-readings", TrendTimeline: "slot-readings", AnomalyAssessment: "slot-readings",
-    PeopleAtRisk: "slot-people", EvacuationRoute: "slot-people",
-    ResponseOptions: "slot-response", Runbook: "slot-response", ExternalContext: "slot-context",
-    DecisionPanel: null, DispatchComposer: null, MonitorPanel: "slot-response", Sources: null,
+    SensorPanel: "slot-readings", TrendTimeline: "slot-readings", AnomalyAssessment: "slot-sit",
+    PeopleAtRisk: "slot-sit", EvacuationRoute: "slot-sit",
+    ResponseOptions: "slot-todo", Runbook: "slot-todo", ExternalContext: "slot-context",
+    DecisionPanel: null, DispatchComposer: null, MonitorPanel: "slot-todo", Sources: null,
   };
-  const SECTION_OF = { "slot-readings": "sec-readings", "slot-people": "sec-people", "slot-response": "sec-response", "slot-context": "sec-context" };
+  const SECTION_OF = { "slot-context": "sec-context" };
 
   const state = { team: "", dryRun: true, following: true, runId: null, facility: null, components: new Map(), nodes: new Map(), sources: [], routes: [], selected: [], decision: null };
 
@@ -28,9 +28,9 @@
 
   function reset() {
     state.components.clear(); state.nodes.clear(); state.sources = []; state.routes = []; state.selected = []; state.decision = null;
-    ["slot-header", "slot-banner", "slot-map", "slot-readings", "slot-people", "slot-response", "slot-context", "sources", "action-results", "timeline", "dec-alts", "metrics"].forEach((id) => { $(id).innerHTML = ""; });
-    ["sec-readings", "sec-people", "sec-response", "sec-context", "sec-sources", "sec-update"].forEach((id) => show(id, false));
-    show("welcome", false); show("strip", true); show("decision", false); show("sec-situation", true); show("sec-trace", true);
+    ["slot-header", "slot-banner", "slot-map", "slot-readings", "slot-sit", "slot-todo", "slot-context", "sources", "action-results", "timeline", "dec-alts", "metrics"].forEach((id) => { $(id).innerHTML = ""; });
+    ["sec-context", "sec-sources"].forEach((id) => show(id, false));
+    show("welcome", false); show("fold", true); show("below", true); show("decision", false);
     document.querySelectorAll(".lane").forEach((l) => { l.className = "lane"; l.querySelector(".state").textContent = "idle"; l.querySelector(".lane-b").innerHTML = ""; });
     document.querySelectorAll("#stepper span").forEach((s) => (s.className = ""));
     $("btn-act").disabled = false;
@@ -81,11 +81,11 @@
     $("dispatch-text").value = d.dispatch_message || ""; $("override-action").value = ""; $("btn-act").disabled = false;
     lane("commander", "done", `decided <b>${esc(d.action)}</b> · ${Math.round(d.confidence * 100)}%`);
     if (d.guardrail_note) { log("guardrail: " + d.guardrail_note, "warn"); lane("commander", "done", `policy: ${esc(d.guardrail_note)}`); }
-    step("act"); show("sec-update", true);
+    step("act");
   }
   function showMetrics(m) {
     const t = m.timings || {};
-    $("metrics").innerHTML = [["first component", t.first_component_ms], ["classified", t.classified_ms], ["decided", t.decided_ms]].filter(([, v]) => v != null).map(([k, v]) => `<span>${k} <b>${v} ms</b></span>`).join("") + (m.llm_calls != null ? `<span>model calls <b>${m.llm_calls}</b></span><span>sources <b>${m.sources}</b></span><span>components <b>${m.components}</b></span>` : "");
+    $("metrics").innerHTML = [["first tile", t.first_component_ms], ["decided", t.decided_ms]].filter(([, v]) => v != null).map(([k, v]) => `<i>${k} ${(v / 1000).toFixed(1)}s</i>`).join("") + (m.llm_calls != null ? `<i>${m.llm_calls} model calls</i><i>${m.sources} sources</i>` : "");
   }
   function addActionResult(r) {
     const d = r.detail || {}; const ok = r.ok ? "ok" : "fail";
@@ -199,5 +199,6 @@
   const auto = params.get("replay") ? { source: "replay", recording: params.get("replay"), speed: Number(params.get("speed") || 1) } : params.get("fixture") ? { source: "fixture", fixture: params.get("fixture") } : null;
   if (auto) setTimeout(() => start(auto), 600);
 
+  $("theme-btn").addEventListener("click", () => { const r = document.documentElement; const dark = r.dataset.theme !== "dark"; if (dark) r.dataset.theme = "dark"; else delete r.dataset.theme; try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch (e) {} });
   loadMenu().catch(() => {}); refreshRuns(); connect();
 })();
