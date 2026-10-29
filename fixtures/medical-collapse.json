@@ -1,0 +1,17 @@
+{
+  "name": "medical-collapse",
+  "facility_id": "aws-builder-loft-sf",
+  "description": "An attendee collapses at the entrance; bystanders start CPR and nobody knows where the AED is.",
+  "ticks": [
+    {
+      "incident_id": "loft-2026-1105-med",
+      "tick_id": 1,
+      "narrative": "10:52 Reception: an attendee in his fifties collapsed by the registration desk at the entrance, unresponsive and not breathing normally. A bystander has started CPR. 911 has been called from a mobile phone. Nobody at the desk knows where the AED is. A crowd of about 15 is gathering and blocking the corridor to the main_stage.",
+      "sector_reports": [
+        {"sector": "entrance", "sensors": {"occupancy": 15}, "civilian_status": "1 unresponsive, 15 bystanders", "containment_state": "degraded"},
+        {"sector": "main_stage", "sensors": {"occupancy": 90}, "civilian_status": "90 present, unaffected", "containment_state": "holding"}
+      ],
+      "expected_action": "contain"
+    }
+  ]
+}

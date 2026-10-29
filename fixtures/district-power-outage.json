@@ -1,0 +1,18 @@
+{
+  "name": "district-power-outage",
+  "facility_id": "aws-builder-loft-sf",
+  "description": "A utility outage hits the Financial District during a full house. Emergency lighting only, elevators stopped.",
+  "ticks": [
+    {
+      "incident_id": "loft-2026-1105-power",
+      "tick_id": 1,
+      "narrative": "16:20 Main power lost across the floor; emergency lighting is on, elevators have stopped, AV and Wi-Fi are down. Building security says the utility reports an outage affecting several blocks of the Financial District with no restoration estimate. About 120 attendees are present: 90 in main_stage, 20 in the lounge, 10 at the catering_coffee_bar. Nobody is hurt. Stairwells are lit. Outside temperature is mild.",
+      "sector_reports": [
+        {"sector": "main_stage", "sensors": {"power_v": 0, "lux": 15, "occupancy": 90}, "civilian_status": "90 present, calm", "containment_state": "degraded"},
+        {"sector": "lounge", "sensors": {"power_v": 0, "lux": 12, "occupancy": 20}, "civilian_status": "20 present", "containment_state": "degraded"},
+        {"sector": "catering_coffee_bar", "sensors": {"power_v": 0, "lux": 10, "occupancy": 10}, "civilian_status": "10 present", "containment_state": "degraded"}
+      ],
+      "expected_action": "contain"
+    }
+  ]
+}

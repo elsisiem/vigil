@@ -1,0 +1,17 @@
+{
+  "name": "scheduled-alarm-test",
+  "facility_id": "aws-builder-loft-sf",
+  "description": "A pre-announced alarm audibility test. Nothing is wrong. The station should recognise a control case and not escalate.",
+  "ticks": [
+    {
+      "incident_id": "loft-2026-1105-test",
+      "tick_id": 1,
+      "narrative": "15:00 Building management: scheduled quarterly fire alarm audibility test on floor 2 starting now, duration about 90 seconds. Tenants were notified by email yesterday and signage is posted at the entrance. All sensors nominal, no smoke, no reports from staff. Attendees in main_stage have been told to remain seated.",
+      "sector_reports": [
+        {"sector": "main_stage", "sensors": {"smoke_ppm": 0, "temp_c": 21, "occupancy": 95}, "civilian_status": "clear", "containment_state": "holding"},
+        {"sector": "entrance", "sensors": {"smoke_ppm": 0, "temp_c": 21, "occupancy": 6}, "civilian_status": "clear", "containment_state": "holding"}
+      ],
+      "expected_action": "observe"
+    }
+  ]
+}

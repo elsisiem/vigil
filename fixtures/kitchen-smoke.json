@@ -1,0 +1,28 @@
+{
+  "name": "kitchen-smoke",
+  "facility_id": "aws-builder-loft-sf",
+  "description": "Smoke from catering equipment escalates over two ticks while the alarm stays silent.",
+  "ticks": [
+    {
+      "incident_id": "loft-2026-1105-smoke",
+      "tick_id": 1,
+      "narrative": "12:41 Catering staff report light grey smoke from the warming oven behind the catering_coffee_bar and a smell of burning plastic. The fire alarm has not triggered. About 30 people are queueing for lunch in the sector. Visibility is fine. Oven power still on.",
+      "sector_reports": [
+        {"sector": "catering_coffee_bar", "sensors": {"smoke_ppm": 120, "co_ppm": 9, "temp_c": 27, "occupancy": 30}, "civilian_status": "30 present", "containment_state": "degraded"},
+        {"sector": "main_stage", "sensors": {"smoke_ppm": 0, "occupancy": 80}, "civilian_status": "80 present, unaffected", "containment_state": "holding"}
+      ],
+      "expected_action": "contain"
+    },
+    {
+      "incident_id": "loft-2026-1105-smoke",
+      "tick_id": 2,
+      "narrative": "12:44 Smoke is thickening at the catering_coffee_bar and drifting toward the lounge. CO reads 35 ppm at the bar, two people are coughing, and visibility is dropping near the ceiling. The alarm still has not triggered. Oven power has been cut but the smoke continues. Staff are unsure whether the extraction hood is running.",
+      "sector_reports": [
+        {"sector": "catering_coffee_bar", "sensors": {"smoke_ppm": 480, "co_ppm": 35, "temp_c": 29, "occupancy": 22}, "civilian_status": "22 present, 2 coughing", "containment_state": "breached"},
+        {"sector": "lounge", "sensors": {"smoke_ppm": 60, "co_ppm": 6, "occupancy": 18}, "civilian_status": "18 present", "containment_state": "degraded"},
+        {"sector": "main_stage", "sensors": {"smoke_ppm": 0, "occupancy": 80}, "civilian_status": "80 present, unaffected", "containment_state": "holding"}
+      ],
+      "expected_action": "evacuate"
+    }
+  ]
+}

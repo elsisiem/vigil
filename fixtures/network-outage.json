@@ -1,0 +1,18 @@
+{
+  "name": "network-outage",
+  "facility_id": "aws-builder-loft-sf",
+  "description": "Core switch loses power mid-event; badge readers and Wi-Fi fail across two sectors. Nobody is hurt.",
+  "ticks": [
+    {
+      "incident_id": "loft-2026-1105-net",
+      "tick_id": 1,
+      "narrative": "14:05 Facilities radio: breaker tripped in the server_closet, core switch and PoE injectors are dark. Wi-Fi is down across main_stage and workshop_room and the badge readers on both doors stopped responding; doors have failed open. Roughly 60 attendees are mid-session in main_stage and 25 in workshop_room. No smoke, no smell, HVAC and lighting normal. Server closet temperature reading 31C and rising with the exhaust fan off. Facilities lead is three minutes out.",
+      "sector_reports": [
+        {"sector": "server_closet", "sensors": {"power_v": 0, "temp_c": 31, "network_up": 0}, "civilian_status": "clear", "containment_state": "degraded"},
+        {"sector": "main_stage", "sensors": {"network_up": 0, "occupancy": 60}, "civilian_status": "60 present, unaffected", "containment_state": "holding"},
+        {"sector": "workshop_room", "sensors": {"network_up": 0, "occupancy": 25}, "civilian_status": "25 present, unaffected", "containment_state": "holding"}
+      ],
+      "expected_action": "contain"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+[project]
+name = "vigil"
+version = "0.1.0"
+description = "Incident command that builds its own interface: a CrewAI swarm compiles a live, grounded, operable dashboard from unstructured incident logs."
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+license = { text = "MIT" }
+dependencies = [
+  "crewai>=1.13,<2",
+  "crewai-tools[mcp]",
+  "fastapi",
+  "uvicorn[standard]",
+  "openai>=1.50",
+  "httpx>=0.27",
+  "pydantic>=2.7",
+  "python-dotenv",
+  "numpy",
+  "websockets",
+  "rich",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio"]
+
+[project.scripts]
+vigil = "vigil.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["vigil*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
