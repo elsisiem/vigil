@@ -308,7 +308,7 @@ def catalog_brief(names: list[str]) -> str:
     return "\n".join(lines)
 
 
-def validate_component(raw: dict[str, Any], owner: str, order: int) -> Component:
+def validate_component(raw: dict[str, Any], owner: str, order: int, *, provisional: bool = False) -> Component:
     name = raw.get("component")
     if name not in CATALOG:
         raise ValueError(f"unknown component {name!r}")
@@ -316,4 +316,4 @@ def validate_component(raw: dict[str, Any], owner: str, order: int) -> Component
     key = f"{owner}:{name}"
     if name in MULTI_KEY and MULTI_KEY[name] in props:
         key += f":{props[MULTI_KEY[name]]}"
-    return Component(component=name, props=props, owner=owner, order=order, key=key)
+    return Component(component=name, props=props, owner=owner, order=order, key=key, provisional=provisional)

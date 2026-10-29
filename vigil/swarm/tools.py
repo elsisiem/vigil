@@ -77,10 +77,15 @@ def make_sensor_tools(ctx: RunContext) -> list[BaseTool]:
     def current_readings() -> str:
         """Return every sensor reading and witness observation for the current tick, by sector."""
         out = ctx.sensor_view()
+        if not ctx.run.incident.history:
+            out += "\nNo previous ticks: this is the first reading, so no trends can be computed."
         ctx.emit("agent.tool", agent="sensors", tool="current_readings", input="", output=_preview(out))
         return out
 
-    return [signature_match, sensor_trend, current_readings]
+    tools: list[BaseTool] = [current_readings, signature_match]
+    if ctx.run.incident.history:
+        tools.append(sensor_trend)
+    return tools
 
 
 def make_facility_tools(ctx: RunContext) -> list[BaseTool]:

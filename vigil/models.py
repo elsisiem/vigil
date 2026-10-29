@@ -101,6 +101,7 @@ class Component(BaseModel):
     key: str = ""
     owner: str = "system"
     order: int = 0
+    provisional: bool = False
     ts: float = Field(default_factory=time.time)
 
     def model_post_init(self, __context: Any) -> None:

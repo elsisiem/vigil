@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vigil — incident command</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="mark"></span>
+    <div>
+      <div class="wordmark">VIGIL</div>
+      <div class="tagline">incident command that builds its own interface</div>
+    </div>
+  </div>
+  <div class="pills">
+    <span class="pill" id="pill-team">team —</span>
+    <span class="pill" id="pill-mode">—</span>
+    <span class="pill" id="pill-status">idle</span>
+    <span class="pill" id="pill-ws">connecting…</span>
+  </div>
+  <div class="runs">
+    <label>Run <select id="run-select"><option value="">(follow latest)</option></select></label>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="rail rail-left">
+    <section class="panel">
+      <h2>Start an incident</h2>
+      <div class="tabs" id="start-tabs">
+        <button data-tab="fixture" class="active">Fixture</button>
+        <button data-tab="text">Paste log</button>
+        <button data-tab="feed">Live feed</button>
+        <button data-tab="replay">Replay</button>
+      </div>
+      <div class="tab-body" id="tab-fixture">
+        <select id="fixture-select"></select>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="auto-act"> auto-act</label>
+          <button class="primary" id="btn-run-fixture">Run</button>
+        </div>
+      </div>
+      <div class="tab-body hidden" id="tab-text">
+        <textarea id="text-input" rows="7" placeholder="Paste any incident log: radio transcript, sensor dump, staff message…"></textarea>
+        <div class="row"><button class="primary" id="btn-run-text">Run</button></div>
+      </div>
+      <div class="tab-body hidden" id="tab-feed">
+        <select id="feed-scenario">
+          <option value="outbreak-level-5">outbreak-level-5</option>
+          <option value="control-tick">control-tick</option>
+        </select>
+        <input id="feed-team" placeholder="team handle (default from .env)">
+        <div class="row"><button class="primary" id="btn-run-feed">Pull next tick</button></div>
+        <div class="muted small" id="scoreboard"></div>
+      </div>
+      <div class="tab-body hidden" id="tab-replay">
+        <select id="replay-select"></select>
+        <div class="row"><button class="primary" id="btn-replay">Replay</button></div>
+        <div class="muted small">Replays run with no network and no keys.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Swarm</h2>
+      <div class="agents" id="agents">
+        <div class="agent" data-agent="sensors"><div class="agent-head"><span class="dot"></span><b>Sensor Analyst</b><span class="state">idle</span></div><div class="agent-body"></div></div>
+        <div class="agent" data-agent="facility"><div class="agent-head"><span class="dot"></span><b>Facility Lead</b><span class="state">idle</span></div><div class="agent-body"></div></div>
+        <div class="agent" data-agent="research"><div class="agent-head"><span class="dot"></span><b>Field Researcher</b><span class="state">idle</span></div><div class="agent-body"></div></div>
+        <div class="agent" data-agent="commander"><div class="agent-head"><span class="dot"></span><b>Commander</b><span class="state">idle</span></div><div class="agent-body"></div></div>
+      </div>
+    </section>
+
+    <section class="panel grow">
+      <h2>Timeline</h2>
+      <div class="timeline" id="timeline"></div>
+    </section>
+  </aside>
+
+  <section class="stage">
+    <div class="narrative" id="narrative"><span class="muted">No incident loaded. Pick a fixture, paste a log, or pull a tick from the live feed.</span></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <aside class="rail rail-right">
+    <section class="panel">
+      <h2>Operator console</h2>
+      <div id="console-empty" class="muted">The commander's decision will appear here.</div>
+      <div id="console" class="hidden">
+        <div class="decision-line"><span class="label">Swarm proposes</span> <span class="action-chip" id="console-action">—</span></div>
+        <label class="small">Dispatch message</label>
+        <textarea id="dispatch-text" rows="3"></textarea>
+        <div class="row">
+          <select id="override-action">
+            <option value="">approve as proposed</option>
+            <option value="contain">override: contain</option>
+            <option value="evacuate">override: evacuate</option>
+            <option value="observe">override: observe</option>
+          </select>
+        </div>
+        <div class="row">
+          <button class="primary" id="btn-act">Approve &amp; dispatch</button>
+          <label class="check small"><input type="checkbox" id="act-live"> live (not dry-run)</label>
+        </div>
+        <div class="results" id="action-results"></div>
+        <hr>
+        <label class="small">Operator update (recompiles the station)</label>
+        <textarea id="note-text" rows="2" placeholder="e.g. Oven power cut, extraction hood confirmed running, smoke thinning."></textarea>
+        <div class="row"><button id="btn-recompile">Recompile</button></div>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Metrics</h2>
+      <div class="metrics" id="metrics"><span class="muted">—</span></div>
+    </section>
+    <section class="panel grow">
+      <h2>Sources</h2>
+      <div id="sources" class="sources"><span class="muted">Every citation on this screen maps to a real You.com result listed here.</span></div>
+    </section>
+  </aside>
+</main>
+
+<div class="toasts" id="toasts"></div>
+<script src="/static/components.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

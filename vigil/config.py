@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -10,6 +11,17 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env", override=False)
+
+# Keep CrewAI quiet and offline except for the model calls we make on purpose.
+os.environ.setdefault("CREWAI_TELEMETRY_OPT_OUT", "true")
+os.environ.setdefault("OTEL_SDK_DISABLED", "true")
+os.environ.setdefault("CREWAI_DISABLE_TELEMETRY", "true")
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+    except (AttributeError, ValueError):
+        pass
 
 
 def _flag(name: str, default: bool = False) -> bool:
